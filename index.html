@@ -1,0 +1,68 @@
+<html>
+<head>
+<style>
+   body {
+     //background-image: url("{{url_for('static',filename='./images/Camp_Fire_oli_2018312_Landsat.jpg')}}");
+	 background-image:url("./static/images/Camp_Fire_oli_2018312_Landsat.jpg");
+     color:#FFF
+   }
+   .input {
+     color:#000000;
+   }
+   
+   table, th, td {
+     padding: 10px;
+     text-align:left;
+	 border-collapse: collapse;
+   }
+   
+   input {
+	   width:200px;
+   }
+   
+   .rowheader {
+	   text-align:right;
+   }
+   
+   form {
+	   background-color:#906666;
+	   width:350px; 
+   }
+   
+   .buttonclass {
+	   background-color:#F0D3AF;
+   }
+</style>
+<script>
+	function gotohome(){
+		window.location.href = "home.html";
+	}
+</script>
+</head>
+<body style="background-color:#666666;font-family:sans-serif;" >
+  <br><br>
+  <center>
+  <h1 style="color:white;letter-spacing: 10px;">&nbsp;&nbsp;&nbsp;&nbsp;MY DEFENSIBLE SPACE</h1>
+  <br><br>
+  <form action="/login" method="post" >
+  <table style="color:#ffffff; border: 0px solid #ffffff;background-color:#906666;">
+    <tbody>
+      <tr>
+      <td class='rowheader'>USERNAME:</td><td><input type="text" name="username" placeholder="anonomous"/></td>
+      </tr>
+      <tr>
+      <td class='rowheader'>PASSWORD:</td><td><input type="password" name="password" placeholder="********"/></td>
+      </tr>
+      <tr>
+      <td colspan="2" style="text-align:center;">
+      <input type="button" class='buttonclass'  value="LOGIN" onClick="gotohome()"/>
+      </td>
+      </tr>
+    </tbody>
+  </table>
+  
+  </form>
+  <a href="register.html"><b>REGISTER</b></a>
+  </center>
+</body>
+</html>
