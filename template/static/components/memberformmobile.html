@@ -1,0 +1,125 @@
+<style>
+
+  .progressform {
+    padding: 10px;
+    background-color:805050;
+  }
+
+  .logtable tr {
+    height:40px;
+    border: 1px solid black;
+  }
+
+  body, table, input, select, td {
+    font-size: {{fontsize}}px;
+  }
+
+  textarea {
+    font-size: {{fontsize}}px;
+  }
+
+  th {
+    font-size: {{fontsize}}px;
+    min-width:20px;
+    padding: 5px;
+  }
+
+  input[type='checkbox'] {
+    transform: scale({{widgetscale}});
+  }
+
+
+</style>
+
+<script>
+
+  function showlogs(){
+    window.location = "/logviewmobile/{{username}}"
+  }
+
+  function reloadmap(){
+    window.location = "/mapview/{{username}}"
+  }
+
+</script>
+
+<!-- <div class="progressform"> -->
+
+  <table style="cellpadding:5px;" height="100%;">
+    <tbody>
+      <tr></tr>
+      <tr>
+        <td>USERNAME:</td>
+        <td>{{username}}</td>
+      </tr>
+      <tr>
+        <td colspan='2'><input type='button' value="{{address}} {{city}} {{state}}" onclick="zoomhome()" style="font-size:{{fontsize-2}}px;"/><br>
+        MY DEFENSIBLE SPACE</td>
+      </tr>
+      <tr>
+        <td valign="top" colspan='2'>
+          {% include "components/progressform.html" %}
+        </td>
+      </tr>
+      <tr>
+        <td colspan='2'>
+
+        <b>LANDSCAPE</b>
+        SERVICE USED:<input id="landscapeused" type="checkbox" name="landscape"/><br>
+        SERVICES:
+        <select name="landscapeservices" id="landscapeservices" style="width:170px;" >
+          {% for b in businesses %}
+          <option value="">SELECT</option>
+          <option value="{{b[0]}}_{{b[2]}}">{{b[0]}}</option>
+          {% endfor %}
+        </select>
+
+       </td>
+      </tr>
+      <tr>
+        <td colspan='2'>
+
+        SATISFACTION: (5 stars is best)<br>
+        1: <input name='satisfaction' type='radio' value='1'>&nbsp;
+        2: <input name='satisfaction' type='radio' value='2'>&nbsp;
+        3: <input name='satisfaction' type='radio' value='3'>&nbsp;
+        4: <input name='satisfaction' type='radio' value='4'>&nbsp;
+        5: <input name='satisfaction' type='radio' value='5'>
+
+
+        </td>
+      </tr>
+
+      <tr>
+        <td valign="top"><b>MDS COM:</b><br><b>ROLE:</b></td>
+        <td valign="top" style="color:white">{{community}}<br>{{role}}</td>
+      </tr>
+      <tr>
+        <td valign="top" colspan='2'>EXPENDITURES:<br>
+          <textarea rows="3" cols="25" id="expenditures">
+
+          </textarea>
+        </td>
+      </tr>
+
+        <td valign="top" colspan='2'>COMMENTS:<br>
+          <textarea rows="3" cols="25" id="comments">
+
+          </textarea>
+        </td>
+      </tr>
+      <tr>
+        <td colspan='2'>
+          <input type="button" value="SUBMIT CHANGES" style="width:98%;" onclick="submitchanges()"/>
+        </td>
+      </tr>
+      <tr>
+        <td colspan='2'>
+          <input type="button" value="SHOW LOG" style="width:45%;" onclick="showlogs()"/>
+          <input type="button" value="SHOW MAP" style="width:52%;" onclick="reloadmap()"/>
+        </td>
+      </tr>
+      <tr>
+    </tbody>
+  </table>
+<!-- </div> -->

@@ -1,0 +1,92 @@
+<style>
+  .progressform {
+    padding: 10px;
+    background-color:805050;
+  }
+</style>
+<script>
+  function submitchanges(){
+    let z0 = $("input[name='z0']:checked").val();
+    let z1 = $("input[name='z1']:checked").val();
+    let z2 = $("input[name='z2']:checked").val();
+    let expenditures = $("#expenditures").val();
+    let comments = $("#comments").val();
+    $.ajax({
+         url:"myspaceupdate/{{county}}/{{city}}",
+         method: "POST",
+         data: JSON.stringify({ address:"{{address}}", z0:z0, z1:z1, z2:z2, expenditures:expenditures, comments:comments }),
+         contentType: "application/json; charset=utf-8",
+         dataType: "json",
+         success:function(data){
+            console.log("success");
+          },
+          error: function(){
+            console.los("failed");
+          }
+      }
+    )
+  }
+</script>
+<!-- <div class="progressform"> -->
+
+
+
+  <table style="cellpadding:5px;" height="100%">
+    <tbody>
+      <tr></tr>
+      <tr>
+        <td>USERNAME:</td>
+        <td>{{username}}</td>
+      </tr>
+
+      <tr>
+        <td valign="top" colspan='2'>
+          {% include 'components/progressform.html' %}
+        </td>
+      </tr>
+      <tr>
+        <td colspan='2'>
+        <hr width="100%"/>
+        <b>LANDSCAPING:</b><br>
+        SERVICES USED: <input type="checkbox" name="landscape"/><br>
+        SERVICES:
+        <select name="cars" id="landscapeservices" style="width:170px;">
+          <option value="a">ABC</option>
+          <option value="b">BCD</option>
+          <option value="c">CDE</option>
+          <option value="d">DEF</option>
+        </select><br>
+        <hr width="100%"/>
+       </td>
+      </tr>
+
+      <tr>
+        <td valign="top"><b>FIREWISE<br>COMMUNITY:</b></td>
+          <td valign="top" style="color:darkgreen">{{community}}<br>role: {{role}}</td>
+      </tr>
+      <tr>
+        <td valign="top" colspan='2'>EXPENDITURES:<br>
+          <textarea rows="4" cols="35" id="expenditures">
+
+          </textarea>
+        </td>
+      </tr>
+      <tr><td colspan='2'><hr width="100%"/></tr>
+
+      <tr>
+        <td valign="top" colspan='2'>COMMENTS:<br>
+          <textarea rows="3" cols="35" id="comments">
+
+          </textarea>
+        </td>
+      </tr>
+      <tr>
+        <td colspan='2'>
+          <input type="button" value="SUBMIT CHANGES" style="width:100%;" onclick="submitchanges()"/>
+        </td>
+      </tr>
+
+      <tr>
+    </tbody>
+  </table>
+<!-- </div> -->

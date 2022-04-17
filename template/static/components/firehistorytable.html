@@ -1,0 +1,15 @@
+<table>
+  <thead>
+    <tr>
+    <th>FIRE NAME</th><th>ACRES</th><th>DATE</th>
+    </tr>
+  </thead>
+
+  <tbody>
+  {% for fire in firehistory %}
+  <tr>
+    <td>{{fire.fire_name}}</td>
+    <td>{{fire.alarm_date}}</td>
+  </tr>
+  </tbody>
+</table>

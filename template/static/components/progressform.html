@@ -1,0 +1,57 @@
+<style>
+
+  .nowork {
+    background-color:#CC3333;
+    color:black;
+    padding: 10px;
+    text-align: center;
+
+  }
+  .inprogress {
+    background-color:#CCCC33;
+    color:black;
+    padding: 10px;
+    text-align: center;
+
+  }
+  .workcomplete {
+    background-color:#33CC33;
+    color:black;
+    padding: 10px;
+    text-align: center;
+
+  }
+
+
+
+</style>
+
+
+<table>
+    <thead>
+
+    <tr>
+      <th>ZONE</th><th>1</th><th>2</th><th>3</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class='nowork'><td>NO WORK</td>
+      <td><input type='radio' name='z0' value='none' class='nowork' checked /></td>
+      <td><input type='radio' name='z1' value='none' class='nowork' checked /></td>
+      <td><input type='radio' name='z2' value='none' class='nowork' checked /></td>
+
+    </tr>
+    <tr class='inprogress'><td>IN-PROGRESS</td>
+      <td><input type='radio' name='z0' value='inprogress' class='inprogress'/></td>
+      <td><input type='radio' name='z1' value='inprogress' class='inprogress'/></td>
+      <td><input type='radio' name='z2' value='inprogress' class='inprogress'/></td>
+
+    </tr>
+    <tr class='workcomplete'><td>COMPLETE</td>
+      <td><input type='radio' name='z0' value='completed' class='workcomplete'/></td>
+      <td><input type='radio' name='z1' value='completed' class='workcomplete'/></td>
+      <td><input type='radio' name='z2' value='completed' class='workcomplete'/></td>
+
+    </tr>
+  </tbody>
+</table>

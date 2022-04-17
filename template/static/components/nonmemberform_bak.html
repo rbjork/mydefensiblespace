@@ -1,0 +1,124 @@
+<div>
+<style>
+
+  .slidecontainer {
+    width: 100%;
+  }
+
+  .slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 25px;
+    background: #d3d3d3;
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+  }
+
+  .slider:hover {
+    opacity: 1;
+  }
+
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    background: #4CAF50;
+    cursor: pointer;
+  }
+
+  .slider::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    background: #4CAF50;
+    cursor: pointer;
+  }
+
+</style>
+
+Select Firewise Community:<br>
+<select onchange="showcommunity(this)" style="width:100%;">
+  {% for community in citycommunities %}
+    <option>{{community}}</option>
+  {% endfor %}
+</select>
+<p>OR</p><br>
+Solicit Neighbors to Join<br>
+Search Neighborhood:<br>
+<div class="slidecontainer">
+  <input type="range" min="0" max="100" value="0" class="slider" id="myRange">
+  <p>Value: <span id="distance"></span> MILES. &nbsp; <span id="message"></span></p>
+</div>
+<form action="getmaillist/{{county}}/{{city}}" method="POST" id="maillistform" >
+  <input type="hidden" name="xcoord" value="{{xcoord}}" />
+  <input type="hidden" name="ycoord" value="{{ycoord}}" />
+  <input type="hidden" name="distance" value="100" />
+  <input type="button" value="Generate Address List" style="width:100%;" onclick="getMaillist()"/>
+</form>
+<script>
+
+  function showcommunity(select){
+    let community = $(select).val();
+    alert("UNDER CONSTRUCTION");
+  }
+
+  var slider = document.getElementById("myRange");
+  var output = document.getElementById("distance");
+  var message = document.getElementById("message");
+  var distance = 0.1;
+  output.innerHTML = slider.value;
+  slider.oninput = function() {
+    distance = this.value/100.0;
+    output.innerHTML = this.value/100.0;
+    message.innerHTML = "";
+  }
+  slider.onmouseup = function(){
+  	message.innerHTML = "FETCHING";
+    getNeighborhood(this.value/100.0);
+  }
+
+  function getNeighborhood(miles){
+      map.eachLayer((layer) => {
+        if(!('_url' in layer)){
+          layer.remove();
+        }
+
+      });
+      $.ajax({
+          url:"showneighborhood/{{county}}/{{city}}",
+          method: "POST",
+          data: JSON.stringify({xcoord:{{xcoord}}, ycoord:{{ycoord}}, distance:distance}),
+          contentType: "application/json; charset=utf-8",
+          dataType: "json",
+          success: function(geodata){
+           var dutStyle = {
+             "color": 'darkblue',
+             "weight":1,
+             "opacity":1.0,
+             "fillColor": "red",
+             "fillOpacity": 0.0
+           };
+          cityparcels = geodata;
+          var geojson = L.geoJson(geodata, {
+            style: dutStyle
+          });
+          geojson.addTo(map);
+          map.fitBounds(geojson.getBounds());
+          //panAndZoom(address,city);
+          message.innerHTML = geodata["features"].length.toString() + " parcels";
+        }
+      })
+  }
+  
+  var maillist = ["2188 Danberry Lane San Rafael CA 94903"];
+  function getMaillist(){
+    $("input[name='distance']").val(distance);
+    $("#maillistform").submit();
+  }
+
+  showcity();
+</script>
+
+</div>

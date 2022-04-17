@@ -1,0 +1,132 @@
+<div>
+  <style>
+    .progressform {
+      padding: 10px;
+      background-color:805050;
+    }
+    .logtable tr {
+      height:50px;
+      border: 1px solid black;
+    }
+
+    body, table {
+      font-size: 16px;
+    }
+  </style>
+
+
+  <script>
+    console.log("showlogs function definition");
+    function showlogs(){
+      console.log("showlogs");
+
+      $.ajax({
+           url:"memberlog/{{county}}",
+           method: "POST",
+           data: JSON.stringify({ address:"{{address}}", city:"{{city}}", username:"{{username}}"}),
+           contentType: "application/json; charset=utf-8",
+           dataType: "json",
+           success:function(data){
+             $("#map").css("display","none");
+             //debugger;
+             let logs = data['memberlog'];
+             model_data['members'] = data['mymembers'];
+             log_model['memberlog'] = logs;
+
+            $("#logtable").css('display','block');
+            $("#logtable").css('overflow-y','auto');
+            $("#logtable").css('height','650px');
+            showpanel('memberlistdisplay')
+
+            },
+            error: function(err){
+              console.log("failed "+err);
+            }
+        }
+      )
+    }
+
+    function reloadmap(){
+      $("#logtable").css('display','none');
+
+      $("#map").css("display","block");
+      showpanel('twitterdisplay');
+      //$("#showlogs_btn").prop('disabled',false);
+      //$("#showmap_btn").prop('disabled',true);
+    }
+
+  </script>
+
+<!-- <div class="progressform"> -->
+
+  <table style="cellpadding:5px;" >
+    <tbody>
+      <tr>
+        <td>USERNAME:</td>
+        <td>{{username}}</td>
+      </tr>
+      <tr>
+        <td colspan='2'>
+          <input type='button' value="{{address}} {{city}} {{state}}" onclick="zoomhome()" class="small red button" style="width:90%;"/>
+        </td>
+      </tr>
+      <tr>
+        <td valign="top"><b>MDS COMMUNITY:</b><br><b>ROLE:</b></td>
+        <td valign="top" style="color:white">{{community}}<br>{{role}}</td>
+      </tr>
+      <tr>
+        <td valign="top" colspan='2'>
+          {% include 'components/progressform.html' %}
+        </td>
+      </tr>
+      <tr>
+        <td colspan='2'>
+        <hr width="100%"/>
+        <b>LANDSCAPING SERVICE USED</b><input id="landscapeused" type="checkbox" name="landscape"/><br>
+        <input type="text" id="landscapeservices" name='landscapeservices' style="width:98%;" />
+        <br>
+       </td>
+      </tr>
+      <tr>
+        <td colspan='2'>
+        SATISFACTION: (5 stars is best)<br>
+        1:<input name='satisfaction' type='radio' value='1'>&nbsp;&nbsp;
+        2:<input name='satisfaction' type='radio' value='2'>&nbsp;&nbsp;
+        3:<input name='satisfaction' type='radio' value='3'>&nbsp;&nbsp;
+        4:<input name='satisfaction' type='radio' value='4'>&nbsp;&nbsp;
+        5:<input name='satisfaction' type='radio' value='5' checked >
+        </td>
+      </tr>
+      <tr><td colspan='2'>
+        <hr width="100%"/>
+      </td>
+      </tr>
+      <tr>
+        <td valign="top" colspan='2'>EXPENDITURES:<br>
+          <textarea rows="3" cols="32" id="expenditures">
+
+          </textarea>
+        </td>
+      </tr>
+      <tr>
+        <td valign="top" colspan='2'>COMMENTS:<br>
+          <textarea rows="3" cols="32" id="comments">
+
+          </textarea>
+        </td>
+      </tr>
+      <tr>
+        <td colspan='2'>
+          <input type="button" value="SUBMIT CHANGES" style="width:98%;" onclick="submitchanges()" class="small red button"/>
+        </td>
+      </tr>
+      <tr>
+        <td colspan='2'>
+          <input type="button" id="showlogs_btn" value="SHOW LOG" style="width:45%;" onclick="showlogs()" class="small red button"/>
+          <input type="button" id="showmap_btn" value="SHOW MAP" style="width:52%;" onclick="reloadmap()" class="small red button"  />
+        </td>
+      </tr>
+      <tr>
+    </tbody>
+  </table>
+</div>
