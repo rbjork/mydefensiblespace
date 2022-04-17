@@ -1,0 +1,1 @@
+holds static files
