@@ -1,0 +1,34 @@
+<html>
+  <head>
+
+  </head>
+  <body>
+    <div>
+      <script>
+
+        function closelog(){
+          windows.location = "/login"
+        }
+        
+      </script>
+      <table>
+        <thead>
+          <tr>
+            <th>Address</th><th>City</th><th>Description</th><th>Status</th>
+          </tr>
+        <tbody>
+        {% for work in memberlog %}
+        <tr>
+          <td>{{work['landscapeservice']}}</td>
+          <td>{{work['expenditures']}}</td>
+          <td>{{work['comments']}}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+
+      <input type='button' value="Close" onclick="closelog()"/>
+    </div>
+    </<body>
+  </html>
+</body>

@@ -1,0 +1,48 @@
+<html>
+<head>
+<style>
+  body {
+    font-size:30px;
+  }
+</style>
+</head>
+<body>
+
+<div id="logtable">
+</div>
+<script type='text/javascript' src='//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js'></script>
+
+<script>
+
+  function showlogs(){
+    console.log("showlogs");
+    debugger;
+    $.ajax({
+         url:"/memberlogmobile/{{user}}",
+         method: "GET",
+         contentType: "application/json; charset=utf-8",
+         dataType: "json",
+         success:function(data){
+           let logs = data['memberlog'];
+           var html = "<table class='logtable' style='color:black;background-color:white;'><thead><tr><th>Z1</th><th>Z2</th><th>Z3</th><th>EXPENSES</th><th>COMMENTS</th><th>SERVICE</th><th>DATE</th></tr><thead><tbody>";
+           for(var l = 0; l < logs.length; l++){
+             let log = logs[l];
+             html += "<tr><td>" + log[0] + "</td><td>" + log[1] + "</td><td>" + log[2] + "</td><td>" + log[3] + "</td><td>" + log[4] + "</td><td>" + log[5] + "</td><td>" + log[6] + "</td></tr>";
+           }
+           html += "</tbody></table>";
+           html += "<br>Z1,Z2,Z3, Definitions<br>n:no work<br>i: in-progress<br>c:complete";
+            $("#logtable").html(html);
+            $("#logtable").css('visibility','visible');
+          },
+          error: function(err){
+            console.log("failed "+err);
+          }
+      }
+    )
+  }
+
+  showlogs();
+
+</script>
+<input type='button' value="CLOSE" onclick="history.back()" style="height:50px; width:100%;"/>
+</body>

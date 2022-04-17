@@ -1,0 +1,1852 @@
+<!-- The following html and javascript, authoered by Ron Bjork, 'My Defensiblespace' reserves all rights and ownership   -->
+<html>
+<head>
+  <title>MyDefensiblespace</title>
+<!--
+load jquery and mapping and leaflet.js scripts
+-->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+   integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+   crossorigin=""/>
+<!-- Make sure you put this AFTER Leaflet's CSS -->
+ <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+   integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+   crossorigin="">
+ </script>
+ <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+ <!--<script>
+  var coordinates = {{ coordinates|safe }};
+    mapping = new Mapping();
+    mapping.addToMap(name,idn,'red');
+    mapping.plotMap()
+  })jquery-3.6.0.min.js  2.0.3
+ </script> -->
+ <script type='text/javascript' src='//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js'></script>
+
+
+ <script>
+
+
+
+ 	let address = "{{address}}";
+	let city = "{{city}}";
+
+	let community = "{{community}}";
+	let role = "{{role}}";
+	let members = "{{members}}";
+  let county = "{{county}}";
+  let xcoord = {{xcoord}};
+  let ycoord = {{ycoord}};
+
+  model_data = {};
+
+
+
+  var geojsonCommunity = null;
+  var geo100 = null;
+  var geo30 = null;
+  var geo5 = null;
+  var geoStructures = null;
+  var geoCity = null;
+  var cityparcels = null;
+
+  var color100 = "red";
+  var color30 = "red";
+  var color5 = "red";
+
+  console.log('OK 1');
+
+  var countyBoundary = {{ctyboundary|safe}};
+
+  var dopanandzoom = true;
+
+
+
+  var greenIcon = L.icon({
+      iconUrl: 'public/images/leaf-green.png',
+      shadowUrl: 'public/images/leaf-shadow.png',
+      iconSize:     [38, 95], // size of the icon
+      shadowSize:   [50, 64], // size of the shadow
+      iconAnchor:   [22, 94], // point of the icon which will correspond to marker's location
+      shadowAnchor: [4, 62],  // the same for the shadow
+      popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+  });
+
+  var yellowIcon = L.icon({
+      iconUrl: 'public/images/leaf-orange.png',
+      shadowUrl: 'public/images/leaf-shadow.png',
+      iconSize:     [38, 95], // size of the icon
+      shadowSize:   [50, 64], // size of the shadow
+      iconAnchor:   [22, 94], // point of the icon which will correspond to marker's location
+      shadowAnchor: [4, 62],  // the same for the shadow
+      popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+  });
+
+  var redIcon = L.icon({
+      iconUrl: 'public/images/leaf-red.png',
+      shadowUrl: 'public/images/leaf-shadow.png',
+      iconSize:     [38, 95], // size of the icon
+      shadowSize:   [50, 64], // size of the shadow
+      iconAnchor:   [22, 94], // point of the icon which will correspond to marker's location
+      shadowAnchor: [4, 62],  // the same for the shadow
+      popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+  });
+
+
+  var tweetcount = 0;
+
+  function displayOff(){
+    $('#tweetone').css('display','none');
+    $('#tweettwo').css('display','none');
+    $('#tweetthree').css('display','none');
+    $('#tweetfour').css('display','none');
+    $('#tweetfive').css('display','none');
+    $('#tweetsix').css('display','none');
+    $('#tweetseven').css('display','none');
+    $('#tweeteight').css('display','none');
+  }
+
+  function rotateTwitter(){
+    console.log("tweet");
+    tweetcount += 1;
+    var mod = tweetcount % 8;
+    displayOff();
+    if(mod == 0){
+      $('#tweetone').css('display','block');
+    }else if(mod == 1){
+      $('#tweettwo').css('display','block');
+    }else if(mod == 2){
+      $('#tweetthree').css('display','block');
+    }else if(mod == 3){
+      $('#tweetfour').css('display','block');
+    }else if(mod == 4){
+      $('#tweetfive').css('display','block');
+    }else if(mod == 5){
+      $('#tweetsix').css('display','block');
+    }else if(mod == 6){
+      $('#tweetseven').css('display','block');
+    }else if(mod == 7){
+      $('#tweeteight').css('display','block');
+    }
+  }
+
+  var intervalID = setInterval(rotateTwitter, 20000);
+
+  function updateColors(){
+    map.eachLayer((layer) => {
+      if(!('_url' in layer)){
+        layer.remove();
+      }
+    });
+    dopanandzoom = false;
+    debugger;
+    renderdefensiblespace(geo100);
+    renderCity(cityparcels);
+    renderstructures(geoStructures);
+    renderZone30(geo30);
+    renderZone5(geo5);
+    //getCountyFireHistory();
+  }
+
+  var userform = null;
+
+  function updateStatusRadio(){
+    $("input[name=z0][value=" + zone5 + "]").prop('checked', true);
+    $("input[name=z1][value=" + zone30 + "]").prop('checked', true);
+    $("input[name=z2][value=" + zone100 + "]").prop('checked', true);
+  }
+
+  function renderZone(geodata){
+
+    var geojson = L.geoJson(geodata,{
+      style:function(feature){
+        switch (feature.properties.status) {
+          case 'none': return {color: "red", weight:2, opacity:1.0, "fillOpacity":0.0};
+          case 'inprogress': return {color: "yellow", weight:2, opacity:1.0, fillOpacity:0.0};
+          case 'completed': return {color: "lightgreen", weight:2, opacity:1.0, fillOpacity:0.0};
+        }
+      }
+    })
+
+    geojson.addTo(map);
+
+  }
+
+  function reloadMySpace(){
+    map.eachLayer((layer) => {
+      if(!('_url' in layer)){
+        layer.remove();
+      }
+    });
+    showMYparcel();
+    showdefensiblespace();
+    //showcity();
+    //showMYstructures();
+    showZone30();
+    showZone5();
+    workhistory();
+  }
+
+  function fly2MemberParcel(ele){
+    latlng = $(ele).val();
+    latlngAr = latlng.split(',');
+    lat = parseFloat(latlngAr[0]);
+    lng = parseFloat(latlngAr[1]);
+    console.log(lat);
+    map.flyTo([lat,lng], 18);
+  }
+
+  function applyStatusHandlers(){
+    $("input[name='z0']").change(function(){
+      console.log("z0 click" + this.value);
+      if(this.value == 'none'){
+        color5 = "red";
+        zone5 = "none";
+      }else if(this.value == 'inprogress'){
+        color5 = "yellow";
+        zone5 = "inprogress";
+      }else if(this.value == "completed"){
+        color5 = "lightgreen";
+        zone5 = "inprogress";
+      }
+      updateColors();
+    })
+
+    $("input[name='z1']").change(function(){
+      console.log("z1 click" + this.value);
+      if(this.value == 'none'){
+        color30 = "red";
+        zone30 = "none";
+      }else if(this.value == 'inprogress'){
+        color30 = "yellow";
+        zone30 = "inprogress";
+      }else if(this.value == "completed"){
+        color30 = "lightgreen";
+        zone30 = "completed";
+      }
+      updateColors();
+    })
+    $("input[name='z2']").change(function(){
+      console.log("z2 click" + this.value);
+      if(this.value == 'none'){
+        color100 = "red";
+        zone100 = "none";
+      }else if(this.value == 'inprogress'){
+        color100 = "yellow";
+        zone100 = "inprogress";
+      }else if(this.value == "completed"){
+        color100 = "lightgreen";
+        zone100 = "completed";
+      }
+      updateColors();
+    })
+  }
+
+  // TODO: Below needs testing: Should populate map and address list in community pane
+
+  function onEachCommuntyPolygon(feature,layer){
+    var address = feature.properties['sit_full_s'];
+    console.log("address " + address);
+  }
+
+  function showcommunity(select){
+    console.log("showcommunity");
+    let community = $(select).val();
+    $.ajax({
+      url:"getcommunityparcels/{{county}}/"+community,
+      method: "GET",
+      contentType: "application/json; charset=utf-8",
+      dataType: "json",
+      success:function(data){
+
+        map.eachLayer((layer) => {  // Clears map first
+          if(!('_url' in layer)){
+            layer.remove();
+          }
+        });
+
+        var dutStyle = {
+          "color": 'lightblue',
+          "weight":1,
+          "opacity":1.0,
+          "fillColor": "blue",
+          "fillOpacity": 0.0
+        };
+
+        geodata = JSON.parse(data['parcels']);
+        var geojson = L.geoJson(geodata, {
+          style: dutStyle
+          //onEachFeature: onEachCommuntyPolygon
+        });
+
+        geojson.addTo(map);
+        try{
+          map.fitBounds(geojson.getBounds());
+        }catch(error){
+          console.log(error);
+        }
+
+        streets = [];
+        htmlitems = "<select size='15' style='width:100%;' onchange='fly2MemberParcel(this)'>";
+
+        for(let struct of geodata.features){
+          streets.push(struct.properties['sit_full_s']);
+          var lng = struct.properties['xcoord'];
+          var lat = struct.properties['ycoord'];
+          htmlitems += "<option value=" + lat + "," + lng + ">" + struct.properties['sit_full_s'] + "</option>";
+        }
+
+        htmlitems += "</select>";
+        $("#rightpanel").html(htmlitems);  // INSERT COMMINITY LIST
+        //$("#maillistdiv").css('visibility','visible');  // TODO: TEST
+
+        console.log("calling renderZone for zone5");
+        renderZone(JSON.parse(data['zone5']));
+        console.log("calling renderZone for zone30");
+        renderZone(JSON.parse(data['zone30']));
+        console.log("calling renderZone for zone100");
+        renderZone(JSON.parse(data['zone100']));
+        console.log("done rendering zones");
+
+      },
+      error:function(error){
+
+      }
+    })
+  }
+
+  console.log('OK 2');
+
+
+  function submitchanges(){
+
+    zone5 = $("input[name='z0']:checked").val();
+    zone30 = $("input[name='z1']:checked").val();
+    zone100 = $("input[name='z2']:checked").val();
+
+    let landscapeused = $("#landscapeused").is(":checked");
+    let satisfaction = $("input[name='satisfaction']:checked").val();
+    let landscapeservice = $("input[name='landscapeservices']").val();
+    let expenditures = $("#expenditures").val();
+    let comments = $("#comments").val();
+
+    console.log("satisfaction " + satisfaction);
+
+    $.ajax({
+         url:"myspaceupdate/{{county}}/{{city}}",
+         method: "POST",
+         data: JSON.stringify({ address:"{{address}}", "z0":zone5, "z1":zone30, "z2":zone100, "expenditures":expenditures, "comments":comments ,"landscapeservice":landscapeservice, "satisfaction":satisfaction, 'landscapeused':landscapeused}),
+         contentType: "application/json; charset=utf-8",
+         dataType: "json",
+         success:function(data){
+            console.log("success");
+            alert("Status updated and logged");
+          },
+          error: function(){
+            console.los("failed");
+            alert("Failed to update Status");
+          }
+      }
+    )
+  }
+
+  function renderComminuty(urlpath){
+    console.log("renderComminuty");
+    $("#rightpanel").html("");  // INSERT COMMINITY LIST
+    $("#maillistdiv").css('visibility','visible');  // TODO: TEST
+    $.ajax({
+      url:urlpath,
+      method: "GET",
+      contentType: "application/json; charset=utf-8",
+      dataType: "json",
+      success: function(data){
+        var dutStyle = {
+          "color": 'darkblue',
+          "weight":1,
+          "opacity":1.0,
+          "fillColor": "red",
+          "fillOpacity": 0.0
+        };
+        debugger;
+        console.log(data['parcels']);
+        geodata = JSON.parse(data['parcels']);
+
+        var geojson = L.geoJson(geodata, {
+          style: dutStyle
+        });
+
+        geojson.addTo(map);
+        try{
+          map.fitBounds(geojson.getBounds());
+        }catch(error){
+          console.log(error);
+        }
+
+        streets = [];
+        htmlitems = "<select size='15' style='width:100%;' onchange='fly2MemberParcel(this)'>";
+
+        for(let struct of geodata.features){
+          streets.push(struct.properties['sit_full_s']);
+          var lng = struct.properties['xcoord'];
+          var lat = struct.properties['ycoord'];
+          htmlitems += "<option value=" + lat + "," + lng + ">" + struct.properties['sit_full_s'] + "</option>";
+        }
+
+        htmlitems += "</select>";
+        //userform = $("#rightpanel").html();  // SAVE PREVIOUS UI ELEMENT
+
+        $("#rightpanel").html(htmlitems);  // INSERT COMMINITY LIST
+        $("#maillistdiv").css('visibility','visible');  // TODO: TEST
+
+        console.log("calling renderZone for zone5");
+        renderZone(JSON.parse(data['zone5']));
+        console.log("calling renderZone for zone30");
+        renderZone(JSON.parse(data['zone30']));
+        console.log("calling renderZone for zone100");
+        renderZone(JSON.parse(data['zone100']));
+        console.log("done rendering zones");
+      }
+    })
+  }
+
+  var zone5 = "{{zone5}}";
+  var zone30 = "{{zone30}}";
+  var zone100 = "{{zone100}}";
+
+  $(document).ready(function(){
+    console.log("jquery");
+    updateStatusRadio();
+    userform = $("#rightpanel").html();
+    // $("input[name=z0][value=" + zone5 + "]").prop('checked', true);
+    // $("input[name=z1][value=" + zone30 + "]").prop('checked', true);
+    // $("input[name=z2][value=" + zone100 + "]").prop('checked', true);
+
+    {% if member %}
+        debugger;
+        showMYparcel();
+        showdefensiblespace();
+        showZone30();
+        showZone5();
+        //showfirehistory();
+
+    {% endif %}
+
+    $("input[name='entryformchoice']").change(function(){
+
+      if(this.value == 'COMMUNITY'){
+
+        renderComminuty("getfirewisecommunity/{{county}}/{{city}}/{{community}}");
+      }else if(this.value == "MY SPACE"){
+        $("#maillistdiv").css('visibility','hidden');  // TODO: TEST
+        $("#rightpanel").html(userform);
+        reloadMySpace(); // TODO: may not be needed
+        applyStatusHandlers();
+        updateStatusRadio();
+
+      }else{
+        $("#rightpanel").html('<textarea id="geojson_txt" cols="30" rows="30"/>');
+      }
+    })
+    applyStatusHandlers();
+    workhistory();
+    {% if not member %}
+      //$("#maillistdiv").css('visibility','visible');
+      renderComminuty("getfirewisecommunity/{{county}}/{{city}}/nocom");
+    {% endif %}
+  });
+
+
+  function panAndZoom(street,city){
+
+  	for(let parcel of cityparcels.features){
+  		if(parcel.properties['sit_full_s'].indexOf(street) > -1){
+  			var geodata = {type:"FeatureCollection",features:[parcel]};
+  			var geojson = L.geoJson(geodata, {
+            		style: {}
+          	});
+  	  	map.fitBounds(geojson.getBounds());
+  			map.zoomOut();
+  			break;
+  		}
+  	}
+  }
+
+  function renderCity(geodata){
+      var dutStyle = {
+        "color": 'darkblue',
+        "weight":1,
+        "opacity":1.0,
+        "fillColor": "red",
+        "fillOpacity": 0.0
+      };
+
+     var dutStyleCommunity = {
+        "color": 'skyblue',
+        "weight":2,
+        "opacity":1.0,
+        "fillColor": "red",
+        "fillOpacity": 0.0
+      };
+
+    if(role == "leader"){
+      var geodataCommunity = {type:"FeatureCollection"};
+      var featuresCommunity = [];
+      var geodataNC = {type:"FeatureCollection"};
+      var features = [];
+
+      for(let struct of geodata.features){
+        try{
+          if('community' in struct.properties && struct.properties['community'].indexOf(community) > -1){
+            featuresCommunity.push(struct);
+          }else{
+            features.push(struct);
+          }
+        }catch(error){
+
+        }
+      }
+
+      geodataCommunity["features"] = featuresCommunity;
+      geodataNC["features"] = features;
+      var geojson = L.geoJson(geodataNC, {
+        style: dutStyle
+      })
+
+      geojsonCommunity = L.geoJson(geodataCommunity, {
+        style: dutStyleCommunity
+      })
+      geojson.addTo(map);
+
+    }else{
+
+      var geojson = L.geoJson(geodata, {
+        style: dutStyle
+      });
+      geojson.addTo(map);
+      if(dopanandzoom)map.fitBounds(geojson.getBounds());
+      if(dopanandzoom)panAndZoom(address,city);
+    }
+  }
+
+  function showcity(){
+    $.ajax({
+         url:"showcity/{{county}}/{{city}}",
+         method: "POST",
+         data: JSON.stringify({xcoord:{{xcoord}}, ycoord:{{ycoord}}}),
+         contentType: "application/json; charset=utf-8",
+         dataType: "json",
+         success: function(geodata){
+          cityparcels = geodata;
+          renderCity(geodata);
+        }
+    })
+  }
+
+  function renderstructures(geodata){
+    var dutStyle = {
+      "color": 'black',
+      "weight": 1,
+      "opacity": 1.0,
+      "fillOpacity": 0.0
+    };
+    var dutStyleRD = {
+      "color": 'black',
+      "weight": 1,
+      "opacity": 1.0,
+        "fillOpacity": 0.0
+    };
+
+    let needFix = false;
+
+    if(needFix){
+      var geodataRD = {type:"FeatureCollection"};
+      var featuresRD = [];
+      var geodataNotRD = {type:"FeatureCollection"};
+      var features = [];
+
+      for(let struct of geodata.features){
+        if(struct.properties['sit_full_s'].indexOf('RD') > -1){
+          featuresRD.push(struct);
+        }else{
+          features.push(struct);
+        }
+      }
+      geodataRD["features"] = featuresRD;
+      geodataNotRD["features"] = features;
+      var geojson = L.geoJson(geodataNotRD, {
+            style: dutStyle
+          })
+      var geojsonRD = L.geoJson(geodataRD, {
+            style: dutStyleRD
+      })
+      geojson.addTo(map);
+      geojsonRD.addTo(map);
+      if(dopanandzoom)map.fitBounds(geojson.getBounds());
+    }else{
+      var geojson = L.geoJson(geodata, {
+        style: dutStyle
+      });
+      geojson.addTo(map);
+      if(dopanandzoom)map.fitBounds(geojson.getBounds());
+    }
+  }
+
+  function showstructures(){
+
+    $.ajax({
+         url:"showstructures/{{county}}/{{city}}",
+         method: "POST",
+         data: JSON.stringify({xcoord:{{xcoord}}, ycoord:{{ycoord}}}),
+         contentType: "application/json; charset=utf-8",
+         dataType: "json",
+         success: function(geodata){
+            console.log(geodata);
+            geoStructures = geodata;
+            renderstructures(geodata)
+        },
+        error:function(error){
+          console.log("failed");
+        }
+      })
+  }
+
+  function showMYstructures(){
+    $.ajax({
+         url:"showmystructures/{{county}}/{{city}}",
+         method: "POST",
+         data: JSON.stringify({address:"{{address}}"}),
+         contentType: "application/json; charset=utf-8",
+         dataType: "json",
+         success: function(geodata){
+            console.log(geodata);
+            geoStructures = geodata;
+            renderstructures(geodata)
+        },
+        error:function(error){
+          console.log("failed");
+        }
+      })
+  }
+
+  function showMYparcel(){
+    $.ajax({
+         url:"showmyparcel/{{county}}/{{city}}",
+         method: "POST",
+         data: JSON.stringify({address:"{{address}}"}),
+         contentType: "application/json; charset=utf-8",
+         dataType: "json",
+         success: function(geodata){
+            console.log(geodata);
+            cityparcels = geodata;
+            renderCity(geodata);
+        },
+        error:function(error){
+          console.log("failed");
+        }
+      })
+  }
+
+  console.log('OK 3');
+
+  let colormap = {'completed':'green', 'inprogress':'yellow', 'none':'read'};
+
+  function renderdefensiblespace(geodata){
+      var dutStyle = {
+        "color": color100,
+        "weight":3,
+        "opacity":0.7,
+         "fillOpacity": 0.0,
+         "dashedArray": '2,4'
+      };
+
+      var geojson = L.geoJson(geodata, {
+        style: dutStyle
+      });
+      geojson.addTo(map);
+      if(geojsonCommunity != null){
+        geojsonCommunity.addTo(map);
+        if(dopanandzoom)map.fitBounds(geojsonCommunity.getBounds());
+      }else{
+        if(dopanandzoom)map.fitBounds(geojson.getBounds());
+      }
+  }
+
+
+
+  function onEachFirePolygon(feature, layer){
+    layer.on({
+      click: function(e) {
+        let lat = e.latlng['lat'];
+        let lng = e.latlng['lng'];
+        // if (selection) {
+        //   resetStyles();
+        // }
+        //
+        // e.target.setStyle(gardenSelectedStyle());
+        // selection = e.target;
+        // selectedLayer = gardenLayer;
+
+        // Insert some HTML with the feature name
+        // buildSummaryLabel(feature);
+
+        // var fn = feature.properties['fire_name'];
+        // var dt = feature.properties['year_'];
+        // var acreage = feature.properties['gis_acre'];
+        var html = '<h4 style="color:white;">COUNTY FIRE HISTORY</h4> <table><tbody>';
+        // html += '<tr><td>FIRE:</td><td>'+ fn +'</td></tr>';
+        // html += '<tr><td>DATE:</td><td>' + dt + '</td></tr>';
+        // html += '<tr><td>ACREAGE:</td><td>' + acreage +'</td></tr>';
+        //
+        firecause = ["Lightning","Equipment Use","Smoking","Campfire","Debris","Railroad","Arson","Playing with Fire","Miscellanous","Vehicle","Power Line","Firefighting Training","Non FF Training","Unknown","Structure","Aircraft","Volcanic","Escaped Burn","Campfire"];
+        for(var p in feature.properties){
+          html += '<tr><td>'+p.replace('_',' ').toUpperCase()+'</td><td>';
+          if(p == 'cause'){
+            html += firecause[parseInt(feature.properties[p])-1] +'</td></tr>';
+          }else{
+            html += feature.properties[p] +'</td></tr>';
+          }
+        }
+        html += '</tbody></table>';
+        $('#polygon_fire_info').html(html);
+        L.DomEvent.stopPropagation(e); // stop click event from being propagated further
+      },
+      mouseover: function(e){
+        console.log("mouseover");
+      }
+    });
+  }
+
+  function showBox(show=true){
+    if(show){
+      $("polygon_fire_info").css('height','500px');
+      $("#polygon_fire_info").css('display','block');
+      $("#calfiretwitter").css('display','none');
+    }else{
+      $("polygon_fire_info").css('height','1px');
+      $("#polygon_fire_info").css('display','none');
+      $("#calfiretwitter").css('display','block');
+    }
+  }
+
+  function sortgeo(g1,g2){
+    return g1.feature.properties['year'] > g2.feature.properties['year'];
+  }
+
+  function showfirehistory(ele=null){
+
+    if($(ele).val() == "SHOW FIRE HISTORY"){
+      $(ele).val("HIDE FIRE HISTORY");
+      showBox(true);
+      showpanel("polygon_fire_info");
+    }else{
+      $(ele).val("SHOW FIRE HISTORY");
+      $('#polygon_fire_info').html('');
+      showBox(false);
+      showpanel("twitterdisplay");
+      reloadMySpace();
+      return;
+    }
+    console.log("showfirehistory {{county}}");
+    $.ajax({
+         url:"countyfirehistory/{{county}}",
+         method: "POST",
+         data: JSON.stringify({address:"{{address}}"}),
+         contentType: "application/json; charset=utf-8",
+         dataType: "json",
+         success:function(geodata){
+
+            var dutStyle = {
+              "color": 'red',
+              "weight":2,
+              "opacity":0.7,
+               "fillOpacity": 0.5,
+               "dashedArray": '2,4'
+            };
+            var geojson = L.geoJson(geodata, {
+              style: dutStyle,
+              onEachFeature: onEachFirePolygon
+            });
+
+            var ctystyle = {
+              "color": 'white',
+              "weight":2,
+              "opacity":1,
+               "fillOpacity": 0.0,
+               "dashedArray": '2,4'
+            };
+
+            var geoCountyBdy = L.geoJson(countyBoundary,{
+              style:ctystyle
+            })
+
+            geoCountyBdy.addTo(map);
+            geojson.addTo(map);
+            map.fitBounds(geojson.getBounds());
+
+      			//map.zoomOut();
+          },
+          error: function(er){
+            console.log("failed countyfirehistory " + er.toString());
+          }
+        }
+      )
+    }
+
+  function onEachFireThreatPolygon(feature, layer){
+    var haz_code = 0;
+    for(var p in feature.properties){
+      console.log("threat p value "+p);
+      if(p == "haz_code"){
+        haz_code = feature.properties[p];
+        var color = "blue";
+        if(haz_code == 1){
+          color = "yellow";
+        }else if(haz_code == 2){
+          color = "orange";
+        }else if(haz_code == 3){
+          color = "red";
+        }
+        layer.setStyle({
+          "color": color,
+          "weight":1,
+          "opacity":1,
+          "fillOpacity": 0.4,
+        })
+        break;
+      }
+    }
+  }
+
+
+  function showfirethreat(ele){
+
+    if($(ele).val() == "SHOW FIRE THREAT"){
+      $(ele).val("HIDE FIRE THREAT");
+    }else{
+      $(ele).val("SHOW FIRE THREAT");
+      reloadMySpace();
+      return;
+    }
+
+    $.ajax({
+         url:"countyfirethreat/{{county}}",
+         method: "GET",
+         contentType: "application/json; charset=utf-8",
+         dataType: "json",
+         success:function(geodata){
+
+            var fireStyle = {
+              "color": 'red',
+              "weight":2,
+              "opacity":0.5,
+              "fillOpacity": 0.0,
+              "dashedArray": '2,4'
+            };
+
+            var geojson = L.geoJson(geodata, {
+              onEachFeature: onEachFireThreatPolygon
+            });
+
+            var ctystyle = {
+              "color": 'white',
+              "weight":2,
+              "opacity":1,
+               "fillOpacity": 0.0,
+               "dashedArray": '2,4'
+            };
+
+            var geoCountyBdy = L.geoJson(countyBoundary,{
+              style:ctystyle
+            })
+
+            geoCountyBdy.addTo(map);
+            geojson.addTo(map);
+            map.fitBounds(geojson.getBounds());
+
+      			//map.zoomOut();
+          },
+          error: function(er){
+            console.log("failed countyfirehistory " + er.toString());
+          }
+        }
+      )
+  }
+
+
+  function showdefensiblespace(){
+    $.ajax({
+         url:"showzone100/{{county}}/{{city}}",
+         method: "POST",
+         data: JSON.stringify({address:"{{address}}"}),
+         contentType: "application/json; charset=utf-8",
+         dataType: "json",
+         success:function(geodata){
+            geo100 = geodata;
+            console.log(geodata);
+            //$("#comments").val();
+            //renderdefensiblespace(geodata);
+            if(geodata['features'].length > 0){
+              color100 = colormap[geodata['features'][0]['properties']['status']];
+            }
+            renderZone(geodata)
+          },
+          error: function(er){
+            console.log("failed " + er);
+          }
+      }
+    )
+  }
+
+  function renderZone30(geodata){
+      var dutStyle = {
+        "color": color30,
+        "weight":2,
+        "opacity":0.7,
+         "fillOpacity": 0.0,
+         "dashedArray": '2,4'
+      };
+      var geojson = L.geoJson(geodata, {
+        style: dutStyle
+      });
+      geojson.addTo(map);
+  }
+
+  function showZone30(){
+
+    $.ajax({
+         url:"showzone30/{{county}}/{{city}}",
+         method: "POST",
+         data: JSON.stringify({ address:"{{address}}" }),
+         contentType: "application/json; charset=utf-8",
+         dataType: "json",
+         success:function(geodata){
+            console.log(geodata);
+            geo30 = geodata;
+
+            //renderZone30(geodata);
+            if(geodata['features'].length > 0){
+              color30 = colormap[geodata['features'][0]['properties']['status']];
+            }
+            debugger;
+
+            renderZone(geodata)
+            // if(geojsonCommunity != null){
+            //   geojsonCommunity.addTo(map);
+      		  //   map.fitBounds(geojsonCommunity.getBounds());
+            // }else{
+            //   map.fitBounds(geojson.getBounds());
+            // }
+          },
+          error: function(){
+            console.log("failed");
+          }
+      }
+    )
+  }
+
+  function renderZone5(geodata){
+      console.log(geodata);
+      var dutStyle = {
+        "color": color5,
+        "weight":2,
+        "opacity":0.8,
+         "fillOpacity": 0.0,
+         "dashedArray": '2,4'
+      };
+      var geojson = L.geoJson(geodata, {
+        style: dutStyle
+      });
+      geojson.addTo(map);
+  }
+
+  function showZone5(){
+
+    $.ajax({
+         url:"showzone5/{{county}}/{{city}}",
+         method: "POST",
+         data: JSON.stringify({ address:"{{address}}" }),
+         contentType: "application/json; charset=utf-8",
+         dataType: "json",
+         success:function(geodata){
+            geo5 = geodata;
+            if(geodata['features'].length > 0){
+              color5 = colormap[geodata['features'][0]['properties']['status']];
+            }
+
+            renderZone(geodata)
+            //renderZone5(geodata);
+            // if(geojsonCommunity != null){
+            //   geojsonCommunity.addTo(map);
+      		  //   map.fitBounds(geojsonCommunity.getBounds());
+            // }else{
+            //   map.fitBounds(geojson.getBounds());
+            // }
+          },
+          error: function(err){
+            console.log("failed "+err);
+          }
+      }
+    )
+  }
+
+  function zoomhome(){
+    map.flyTo([{{ycoord}}, {{xcoord}}], 19);
+  }
+
+  function createAvatarJsonPoint(name,point,avatar){
+    var avatarIcon = L.icon({
+      iconUrl: 'public/images/' + avatar,
+      iconSize:     [38, 95], // size of the icon
+      shadowSize:   [50, 64], // size of the shadow
+      iconAnchor:   [22, 94], // point of the icon which will correspond to marker's location
+      shadowAnchor: [4, 62],  // the same for the shadow
+      popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+    })
+    leafGeoJson = L.marker([point['LAT'],point["LON"]], {icon: avatarIcon});
+    return leafGeoJson;
+  }
+
+  function createGeoJsonPoint(name,point,color){
+    var ptjson = {
+      "type":"Feature",
+      "geometry": {
+        "type":"Point",
+        "coordinates":[point['LON'],point["LAT"]]
+      },
+      "properties": point['PROPS']
+    }
+
+    var pinStyle = {
+      "color":color,
+      "weight":3,
+      "opacity":0.75
+    }
+
+
+
+    var pinGeoJson = L.geoJson(ptjson, {
+      style: pinStyle,
+      onEachFeature: function(feature,layer){
+        console.log("do stuff");
+        layer.on({
+          click: function(e) {
+            console.log("click");
+            // var html = '<h4 style="color:white;">LANDSCAPE SERVICE</h4><table><tbody>';
+            // html += '<tr><td>NAME</td><td>'+ feature.properties['landscapeservice'] +'</td></tr>';
+            // html += '<tr><td>CITY</td><td>'+ feature.properties['city'] +'</td></tr>';
+            // html += '</tbody></table>';
+            // $('#polygon_fire_info').html(html);
+            var popup = L.popup()
+              .setLatLng(e.latlng)
+              .setContent('<p>'+ feature.properties['landscapeservice'] + '<br />' + feature.properties['city'] + '</p>')
+              .openOn(map);
+          }
+        })
+      }
+    })
+
+    return pinGeoJson;
+  }
+
+  function placePins(name, point, color){
+    let ptgeo = createGeoJsonPoint(name, point, color);
+    ptgeo.addTo(map);
+  }
+
+  function workhistory(){
+
+    //let county = $("select[name='county']").val();
+    let name = ""; //$("input[name='name']").val();
+
+    $.ajax({
+      url:'/workreportedbymembers/'+county,
+      method: 'POST',
+      contentType: "application/json; charset=utf-8",
+      data: JSON.stringify({'name':name,'city':'{{city}}','address':'{{address}}', 'community':'{{community}}'}),
+      dataType: "json",
+      success:function(data){
+        let workdone = data['workdone'];
+        $("#workhistory").html(workdone);
+        $("#workdone_map").css('visibility',"hidden");
+        $("#workhistory").css('visibility',"visible");
+
+        coordinates = data['coordinates'];
+        avatars = data['avatars'];
+        communities = data['communities'];
+        for(var i =0; i<avatars.length ;i++){
+          c = coordinates[i];
+          w = workdone[i];
+          var point = {'LON':c[0],'LAT':c[1],'PROPS':{'address':w[0],'city':w[2],'landscapeservice':w[3]}};
+          avatar = avatars[i];
+          community = communities[i];
+          if(avatar != '' && avatar != 'none' && avatar != null){
+            let ptgeo = createAvatarJsonPoint(name, point, avatar);
+            ptgeo.addTo(map);
+          }else{
+            placePins("test",point,'yellow');
+          }
+
+        }
+        //$("#workhistory").dialog('open');
+      },
+      error:function(error){
+        console.log(error);
+      }
+    })
+  }
+
+  function showpanel(panel){
+    console.log("showpanel"+panel);
+    $("#twitterdisplay").css('display','none');
+    $("#polygon_fire_info").css('display','none');
+    $("#memberlistdisplay").css('display','none');
+    $("#forecastdisplay").css('display','none');
+    $("#"+panel).css('display','block');
+  }
+
+
+
+
+  console.log('OK 4');
+
+  // maillist support
+
+  function showforecast(ele){
+    if($(ele).val() == "SHOW 7 DAY FORECAST"){
+      showpanel('forecastdisplay');
+      $(ele).val("SHOW TWITTER");
+    }else{
+      $(ele).val("SHOW 7 DAY FORECAST");
+      showpanel("twitterdisplay");
+    }
+  }
+
+ </script>
+ <style>
+    body {
+      background-image: url("{{url_for('static',filename='./images/Camp_Fire_oli_2018312_Landsat.jpg')}}");
+      color:#FFF;
+	     background-color:#F0D3AF;
+	    //background-image:url("./static/images/drygrassbackdrop.jpg");
+	}
+	.input {
+		color:#000000
+	}
+
+  	th, td {
+    	padding: 3px;
+  	}
+
+  	h3 {
+	  color:#000;
+  	}
+
+  	h1 {
+  		letter-spacing: 10px;
+	}
+
+  .boxed {
+    border: 1px solid white ;
+    min-height: 340px;
+    min-width: 200px;
+    width:240px;
+  }
+
+
+  .button::-moz-focus-inner{
+    border: 0;
+    padding: 0;
+  }
+
+  .button{
+    display: inline-block;
+    *display: inline;
+    zoom: 1;
+    padding: 6px 20px;
+    margin: 0;
+    cursor: pointer;
+    border: 1px solid #bbb;
+    overflow: visible;
+    font: bold 13px arial, helvetica, sans-serif;
+    text-decoration: none;
+    white-space: nowrap;
+    color: #555;
+
+    background-color: #ddd;
+    background-image: -webkit-gradient(linear, left top, left bottom, from(rgba(255,255,255,1)), to(rgba(255,255,255,0)));
+    background-image: -webkit-linear-gradient(top, rgba(255,255,255,1), rgba(255,255,255,0));
+    background-image: -moz-linear-gradient(top, rgba(255,255,255,1), rgba(255,255,255,0));
+    background-image: -ms-linear-gradient(top, rgba(255,255,255,1), rgba(255,255,255,0));
+    background-image: -o-linear-gradient(top, rgba(255,255,255,1), rgba(255,255,255,0));
+    background-image: linear-gradient(top, rgba(255,255,255,1), rgba(255,255,255,0));
+
+    -webkit-transition: background-color .2s ease-out;
+    -moz-transition: background-color .2s ease-out;
+    -ms-transition: background-color .2s ease-out;
+    -o-transition: background-color .2s ease-out;
+    transition: background-color .2s ease-out;
+    background-clip: padding-box; /* Fix bleeding */
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+    -moz-box-shadow: 0 1px 0 rgba(0, 0, 0, .3), 0 2px 2px -1px rgba(0, 0, 0, .5), 0 1px 0 rgba(255, 255, 255, .3) inset;
+    -webkit-box-shadow: 0 1px 0 rgba(0, 0, 0, .3), 0 2px 2px -1px rgba(0, 0, 0, .5), 0 1px 0 rgba(255, 255, 255, .3) inset;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, .3), 0 2px 2px -1px rgba(0, 0, 0, .5), 0 1px 0 rgba(255, 255, 255, .3) inset;
+    text-shadow: 0 1px 0 rgba(255,255,255, .9);
+
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  .button:hover{
+    background-color: #eee;
+    color: #555;
+  }
+
+  .button:active{
+    background: #e9e9e9;
+    position: relative;
+    top: 1px;
+    text-shadow: none;
+    -moz-box-shadow: 0 1px 1px rgba(0, 0, 0, .3) inset;
+    -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .3) inset;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, .3) inset;
+  }
+
+  .button[disabled], .button[disabled]:hover, .button[disabled]:active{
+    border-color: #eaeaea;
+    background: #fafafa;
+    cursor: default;
+    position: static;
+    color: #999;
+    /* Usually, !important should be avoided but here it's really needed :) */
+    -moz-box-shadow: none !important;
+    -webkit-box-shadow: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Smaller buttons styles */
+
+  .button.small{
+    padding: 4px 12px;
+  }
+
+  /* Larger buttons styles */
+
+  .button.large{
+    padding: 12px 30px;
+    text-transform: uppercase;
+  }
+
+  .button.large:active{
+    top: 2px;
+  }
+
+  /* Colored buttons styles */
+
+  .button.green, .button.red, .button.blue {
+    color: #fff;
+    text-shadow: 0 1px 0 rgba(0,0,0,.2);
+
+    background-image: -webkit-gradient(linear, left top, left bottom, from(rgba(255,255,255,.3)), to(rgba(255,255,255,0)));
+    background-image: -webkit-linear-gradient(top, rgba(255,255,255,.3), rgba(255,255,255,0));
+    background-image: -moz-linear-gradient(top, rgba(255,255,255,.3), rgba(255,255,255,0));
+    background-image: -ms-linear-gradient(top, rgba(255,255,255,.3), rgba(255,255,255,0));
+    background-image: -o-linear-gradient(top, rgba(255,255,255,.3), rgba(255,255,255,0));
+    background-image: linear-gradient(top, rgba(255,255,255,.3), rgba(255,255,255,0));
+  }
+
+  /* */
+
+  .button.green{
+    background-color: #70a070;
+    border-color: #57a957;
+  }
+
+  .button.green:hover{
+    background-color: #62c462;
+  }
+
+  .button.green:active{
+    background: #57a957;
+  }
+
+  /* */
+
+  .button.red{
+    background-color: #ca3535;
+    border-color: #c43c35;
+  }
+
+  .button.red:hover{
+    background-color: #ee5f5b;
+  }
+
+  .button.red:active{
+    background: #c43c35;
+  }
+
+  /* */
+
+  .button.blue{
+    background-color: #269CE9;
+    border-color: #269CE9;
+  }
+
+  .button.blue:hover{
+    background-color: #70B9E8;
+  }
+
+  .button.blue:active{
+    background: #269CE9;
+  }
+
+  /* */
+
+  .green[disabled], .green[disabled]:hover, .green[disabled]:active{
+    border-color: #57A957;
+    background: #57A957;
+    color: #D2FFD2;
+  }
+
+  .red[disabled], .red[disabled]:hover, .red[disabled]:active{
+    border-color: #C43C35;
+    background: #C43C35;
+    color: #FFD3D3;
+  }
+
+  .blue[disabled], .blue[disabled]:hover, .blue[disabled]:active{
+    border-color: #269CE9;
+    background: #269CE9;
+    color: #93D5FF;
+  }
+
+  /* Group buttons */
+
+  .button-group,
+  .button-group li{
+    display: inline-block;
+    *display: inline;
+    zoom: 1;
+  }
+
+  .button-group{
+    font-size: 0; /* Inline block elements gap - fix */
+    margin: 0;
+    padding: 0;
+    background: rgba(0, 0, 0, .1);
+    border-bottom: 1px solid rgba(0, 0, 0, .1);
+    padding: 7px;
+    -moz-border-radius: 7px;
+    -webkit-border-radius: 7px;
+    border-radius: 7px;
+  }
+
+  .button-group li{
+    margin-right: -1px; /* Overlap each right button border */
+  }
+
+  .button-group .button{
+    font-size: 13px; /* Set the font size, different from inherited 0 */
+    -moz-border-radius: 0;
+    -webkit-border-radius: 0;
+    border-radius: 0;
+  }
+
+  .button-group .button:active{
+    -moz-box-shadow: 0 0 1px rgba(0, 0, 0, .2) inset, 5px 0 5px -3px rgba(0, 0, 0, .2) inset, -5px 0 5px -3px rgba(0, 0, 0, .2) inset;
+    -webkit-box-shadow: 0 0 1px rgba(0, 0, 0, .2) inset, 5px 0 5px -3px rgba(0, 0, 0, .2) inset, -5px 0 5px -3px rgba(0, 0, 0, .2) inset;
+    box-shadow: 0 0 1px rgba(0, 0, 0, .2) inset, 5px 0 5px -3px rgba(0, 0, 0, .2) inset, -5px 0 5px -3px rgba(0, 0, 0, .2) inset;
+  }
+
+  .button-group li:first-child .button{
+    -moz-border-radius: 3px 0 0 3px;
+    -webkit-border-radius: 3px 0 0 3px;
+    border-radius: 3px 0 0 3px;
+  }
+
+  .button-group li:first-child .button:active{
+    -moz-box-shadow: 0 0 1px rgba(0, 0, 0, .2) inset, -5px 0 5px -3px rgba(0, 0, 0, .2) inset;
+    -webkit-box-shadow: 0 0 1px rgba(0, 0, 0, .2) inset, -5px 0 5px -3px rgba(0, 0, 0, .2) inset;
+    box-shadow: 0 0 1px rgba(0, 0, 0, .2) inset, -5px 0 5px -3px rgba(0, 0, 0, .2) inset;
+  }
+
+  .button-group li:last-child .button{
+    -moz-border-radius: 0 3px 3px 0;
+    -webkit-border-radius: 0 3px 3px 0;
+    border-radius: 0 3px 3px 0;
+  }
+
+  .button-group li:last-child .button:active{
+    -moz-box-shadow: 0 0 1px rgba(0, 0, 0, .2) inset, 5px 0 5px -3px rgba(0, 0, 0, .2) inset;
+    -webkit-box-shadow: 0 0 1px rgba(0, 0, 0, .2) inset, 5px 0 5px -3px rgba(0, 0, 0, .2) inset;
+    box-shadow: 0 0 1px rgba(0, 0, 0, .2) inset, 5px 0 5px -3px rgba(0, 0, 0, .2) inset;
+  }
+
+
+  .big {
+  font-size: 1.2em;
+}
+
+.small {
+  font-size: .7em;
+}
+
+.square {
+  width: .7em;
+  height: .7em;
+  margin: .5em;
+  display: inline-block;
+}
+
+/* Custom dropdown */
+.custom-dropdown {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  margin: 10px; /* demo only */
+}
+
+.custom-dropdown select {
+  background-color: #af3f3f;
+  color: #fff;
+  font-size: inherit;
+  padding: .5em;
+  padding-right: 2.5em;
+  border: 0;
+  margin: 0;
+  border-radius: 3px;
+  text-indent: 0.01px;
+  text-overflow: '';
+  -webkit-appearance: button; /* hide default arrow in chrome OSX */
+}
+
+.custom-dropdown::before,
+.custom-dropdown::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.custom-dropdown::after { /*  Custom dropdown arrow */
+  content: "\25BC";
+  height: 1em;
+  font-size: .625em;
+  line-height: 1;
+  right: 1.2em;
+  top: 50%;
+  margin-top: -.5em;
+}
+
+.custom-dropdown::before { /*  Custom dropdown arrow cover */
+  width: 2em;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: 0 3px 3px 0;
+}
+
+.custom-dropdown select[disabled] {
+  color: rgba(0,0,0,.3);
+}
+
+.custom-dropdown select[disabled]::after {
+  color: rgba(0,0,0,.1);
+}
+
+.custom-dropdown::before {
+  background-color: rgba(0,0,0,.15);
+}
+
+.custom-dropdown::after {
+  color: rgba(0,0,0,.4);
+}
+
+</style>
+
+
+<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+<style>
+      .main_div {
+          text-align:center;
+          position: relative;
+          left: 100px;
+          height: 30px;
+          width: 500px;
+
+      }
+      .sub_div {
+          position: absolute;
+          bottom: 0px;
+      }
+
+      .links_div {
+        left: 20px;
+        height: 220px;
+        padding: 10px;
+        width: 230px;
+        background-color: #f0aaaa;
+      }
+
+  </style>
+</head>
+<body style="background-color:#F0D3AF;font-family:sans-serif; margin:20px;" >
+
+  <br>
+  <center>
+    <!-- <h1 style="color:CF9999;">MY DEFENSIBLE SPACE</h1> -->
+    <table id="tablelayout" style="color:#ffffff; border: 1px solid #ffffff;background-color:#9F6666; width:100%; height:700px;">
+      <tbody>
+        <tr>
+          <td valign="top" style="padding:20px;background-color:996060;width:250px;">
+            <h3 style="color:FF8080;">MY DEFENSIBLE SPACE &copy;</h3>
+            <div id='ajax_loader' style="position: absolute; left: 50px; top: 90px; display: none;">
+                LOADING ...
+            </div><br>
+            {% if member %}
+            <input type="radio" name="entryformchoice" value="MY SPACE" checked />MY SPACE
+            <input type="radio" name="entryformchoice" value="COMMUNITY"/>MDS COMMUNITY
+            {% endif %}
+            <!-- <input type="radio" name="entryformchoice" value="TEST"/>TEST -->
+            <br>
+
+            <div id='rightpanel' style="width:290px;">
+            {% if member %}
+              {% include "components/memberform.html" %}
+            {% else %}
+              {% include "components/nonmemberform.html" %}
+
+            {% endif %}
+            </div>
+            <div id="maillistdiv" style="visibility:hidden;height:1px;">  <!-- TEST -->
+              {% include "components/neighborsform.html" %}
+            </div>
+          </td>
+          <td valign="top" id='mapcontainer' style="text-align:left;padding:20px;background-color:#AF7777;"  >
+            <style>
+
+                table .logtable {
+
+
+                  width: 100%;
+                }
+
+                .logtable th  {
+                  text-align: left;
+                  padding: 8px;
+                  border:1px solid #000000;
+                }
+
+                .logtable td  {
+                  text-align: left;
+                  padding: 8px;
+                  border:1px solid #000000;
+                }
+
+                .logtable  tr:nth-child(even) {
+                  background-color: #e0e0e0;
+                }
+
+                /* .itemconfiguration
+                {
+                		height:700px;
+
+                		/* background-color:#CCC;
+                    overflow-y:auto;
+                		float:left;
+                		position:relative;
+                		margin-left:-5px;
+                } */
+
+                .custom-file-upload {
+                    border: 1px solid #ccc;
+                    display: inline-block;
+                    padding: 6px 10px;
+                    cursor: pointer;
+                    width:90%;
+                }
+
+            </style>
+            <form id="logtable_frm" method="POST" action="/memberlog_photo/{{county}}/{{username}}" enctype="multipart/form-data" style="background-color:white;" >
+              <input type='hidden' name='address' value='{{address}}'/>
+              <input type='hidden' name='city' value="{{city}}"/>
+              <div id="logtable"  style="width:100%;display:none;background-color:white;padding:4px;height:100%;">
+                <input type='hidden' name='date' value='[|memberlog["activedate"]|]' />
+                <center>
+                <table style="width:100%;color:black;font-size:12px;" class='logtable'>
+                <tbody>
+                  <tr style="background-color:white;height:12px;font-size:12px;"><td>BEFORE</td><td>AFTER</td>
+                  </tr>
+                  <tr>
+                    <td><img id="photobefore_img" src="{{url_for('static',filename = 'images/{{username}}/thumb_1_2.jpg')}}" style="width:100%; height:200px;background-color:gray;" /></td>
+                    <td><img id="photoafter_img" src="{{url_for('static',filename = 'images/{{username}}/thumb_1_2.jpg')}}" style="width:100%; height:200px;background-color:gray;"/></td>
+                  </tr>
+                    <tr style="background-color:white;">
+                      <td>
+                        <label for="photouploaded" class="custom-file-upload">
+                        PHOTO;
+                      <input id='photouploaded' type="file" name="photobefore" v-on:change="photoBeforeChange(this)" />
+
+                      </label>
+                    </td>
+                    <td>
+                      <label for="photouploaded2" class="custom-file-upload">
+                        PHOTO;
+                      <input id='photouploaded2' type="file" name="photoafter" v-on:change="photoAfterChange(this)"/>
+                      </label>
+                    </td>
+
+                  </tr>
+                  <tr><td colspan='2' style="textalign:left;vertical-align:top;">
+                    <textarea id='expenditures_detail' cols='85' placeholder="EXPENDITURES"></textarea><br>
+                    <textarea id='comments_detail' cols='85' placeholder="COMMENTS"></textarea>
+                  </td></tr>
+                </tbody></table>
+                <table style="width:99%;background-color:white;color:black; border:2px solid #505050;font-size:14px;" >
+                  <thead><tr style="font-size:12px;height:12px;"><th>Z1</th><th>Z2</th><th>Z3</th><th>LANDSCAPE SERVICE</th><th>DATE</th><th> :)</th><th>DETAIL</th></thead>
+                  <tbody>
+                    <tr><td colspan="6">TODAY</td>
+                      <td>
+                        <input type="radio" name="memberlog_radio" v-on:click="clearDetail()">
+                      </td>
+                    </tr>
+                    <tr v-for='(row, i) in memberlog' style="height:12px;textalign:left;border:1px solid #000000;">
+                      <td>[|row[0]|]</td>
+                      <td>[|row[1]|]</td>
+                      <td>[|row[2]|]</td>
+                      <td>[|row[5]|]</td>
+                      <td>[|row[6]|]</td>
+                      <td>[|row[7]|] star</td>
+                      <td><input type="radio" name="memberlog_radio" v-on:click="fillDetail(i)"></td>
+                    <tr>
+                  </tbody>
+                </table>
+                <input type="submit" class="small red button" />
+              </div>
+            </form>
+            </center>
+            <div id="map" style="height: 670px; border: 2px solid #000000; width: 100%;">
+          </div>
+      	  <br>
+          <!-- <input type='button' value="{{address}} {{city}} {{state}}" onclick="zoomhome()"/> -->
+          </td>
+          <td style="background-color:#9F6666; vertical-align:top; padding:10px; color:blue;  line-height: 1.5;  width:210px; min-width:250px;" rowspan="2">
+
+          <div id="app"> <!-- START OF VUE APP -->
+
+            <div class='links_div'>
+            {% if county != "placer" %}
+            <span>SITE LINKS</span><br>
+            {% endif %}
+            <a href='changeprofile/{{role}}/{{community}}/{{username}}'>Edit My Profile</a><br>
+            <a href='html/marketplace'>Marketplace</a><br>
+            <a href='forum'>Discussion Forum<br>
+            <a href='html/company_store'>Company Store</a><br>
+            <a href='html/about'>About Us</a><br>
+            <a href='html/contactus'>Contact Us</a><br>
+            <a href='html/legal'>Legal Mumbo Jumbo</a><br>
+
+            {% if county == "placer" %}
+              <a href="https://www.placerair.org/1671/Burn-Days">Burn Day Status</a><br>
+            {% endif %}
+            <a href='html/help'>Help</a>
+            </div>
+              <center>
+                <div id="weather" style="background-color:#666666;color:lightgreen;border: 2px solid #505050;">&nbsp;&nbsp;Temp: {{temp}}&deg;F &nbsp;Humidity: {{humidity}}%</div>
+                <input type='button' value="SHOW 7 DAY FORECAST" class="small red button" style="width:100%;" onclick="showforecast(this)"/>
+                <input type='button' value="SHOW FIRE HISTORY" id='firehistory_btn' onclick="showfirehistory(this)" class="small red button" style="width:100%;" />
+                <input type='button' value="SHOW FIRE THREAT" onclick="showfirethreat(this)" class="small red button" style="width:100%;"/>
+                <div id="forecastdisplay" style="display:none;background-color:white;color:black;height:340px;">
+                  <table style="width:100%; background-color:white;color:black;">
+                    <thead style="text-align:left;" ><tr>
+                      <th>DAY</td><th>TEMP</th><th>HUMIDITY</th><th>SKY</th>
+                    </tr></thead>
+                    <tbody>
+                      <tr v-for="(item,index) in forecast">
+                        <td>[|item['weekday']|]</td>
+                        <td>[|item["temp"]|]&deg;F</td>
+                        <td>[|item["humidity"]|]%</td>
+                        <td>[|item["weather"]|]</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div id="polygon_fire_info" class='boxed' style="display:none;"></div>
+                <br>
+                <div id="twitterdisplay">
+                  <!-- CALIF -->
+                  <div id="tweetone" style="display:block;">
+                    <a class="twitter-timeline"  data-width="250" data-height="345" href="https://twitter.com/CAL_FIRE?ref_src=twsrc%5Etfw">Tweets by CAL_FIRE</a>
+                  </div>
+                  <div id="tweettwo" style="display:none;">
+                    <a class="twitter-timeline"   data-width="250" data-height="345" href="https://twitter.com/CALFIRE_CHIEF?ref_src=twsrc%5Etfw">Tweets by CALFIRE_CHIEF</a>
+                  </div>
+                  <div id="tweetthree" style="display:none;">
+                    <a class="twitter-timeline"   data-width="250" data-height="345" href="https://twitter.com/Cal_OES?ref_src=twsrc%5Etfw">Tweets by Cal_OES</a>
+                  </div>
+                  <div id="tweetfour" style="display:none;">
+                    <a class="twitter-timeline"   data-width="250" data-height="345" href="https://twitter.com/CALFIRENEU?ref_src=twsrc%5Etfw">Tweets by CALFIRENEU</a>
+                  </div>
+
+                  <!-- MARIN -->
+                  {% if county == "marin" %}
+                    <div id="tweetfive" style="display:none;">
+                      <a class="twitter-timeline"   data-width="250" data-height="345" href="https://twitter.com/MarinSheriff?ref_src=twsrc%5Etfw">Tweets by MarinSheriff</a>
+                    </div>
+                    <div id="tweetsix" style="display:none;">
+                      <a class="twitter-timeline" data-width="250" data-height="345" href="https://twitter.com/marincountyfire?ref_src=twsrc%5Etfw">Tweets by marincountyfire</a>
+                    </div>
+                    <div id="tweetseven" style="display:none;">
+                      <a class="twitter-timeline" data-width="250" data-height="345" href="https://twitter.com/maringov?ref_src=twsrc%5Etfw">Tweets by maringov</a>
+                    </div>
+                    <div id="tweeteight" style="display:none;">
+                      <a class="twitter-timeline" data-width="250" data-height="345" href="https://twitter.com/firesafemarin?ref_src=twsrc%5Etfw">Tweets by firesafemarin</a>
+                    </div>
+                  {% else %}
+                  <!-- PLACER -->
+                    <div id="tweetfive" style="display:none;">
+                      <a class="twitter-timeline" data-width="250" data-height="345" href="https://twitter.com/FireAuburn?ref_src=twsrc%5Etfw">Tweets by FireAuburn</a>
+                    </div>
+                    <div id="tweetsix" style="display:none;">
+                      <a class="twitter-timeline" data-width="250" data-height="345" href="https://twitter.com/wildland_zko?ref_src=twsrc%5Etfw">Tweets by wildland_zko</a>
+                    </div>
+                    <div id="tweetseven" style="display:none;">
+                      <a class="twitter-timeline" data-width="250" data-height="345" href="https://twitter.com/SouthPlacerFD?ref_src=twsrc%5Etfw">Tweets by SouthPlacerFD</a>
+                    </div>
+                    <div id="tweeteight" style="display:none;">
+                      <a class="twitter-timeline" data-width="250" data-height="345" href="https://twitter.com/PlacerSheriff?ref_src=twsrc%5Etfw">Tweets by PlacerSheriff</a>
+                    </div>
+                  {% endif %}
+                </div>
+                <div id="memberlistdisplay" style="display:none">
+                  <span style="color:white">Show community member log</span><br>
+                  <select  style="width:100%;" size='18'>
+                    <option v-for="(item, index) in members" value='[|item["username"]]' >[|item['name']|]</option>
+                  </select>
+                </div>
+              </center>
+            </div> <!-- END OF VUE APP -->
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <br>
+
+    <!-- <div id='my-map'/><br> -->
+    <div class="main_div">
+      <div class="sub_div">
+        &copy; 2022 MYDEFENSIBLESPACE.ORG
+      </div>
+    </div>
+  </center>
+
+  <script>
+    console.log('OK 5');
+    var map = L.map( 'map', {
+        center: [20.0, 5.0],
+        minZoom: 2,
+        zoom: 2
+    });
+    L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{
+        maxZoom: 20,
+        subdomains:['mt0','mt1','mt2','mt3']
+    }).addTo( map );
+
+    //L.tileLayer('http://{s}.tile.openstreetmap.org/{x}/{y}/{z}.png').addTo(map)
+
+  </script>
+  <div id="maillistpopup" style="visibility:hidden;backgroud-color:gray;  padding=20px;">
+    <table><tbody><tr><td>
+    <textarea id="maillisttext" rows='20' cols='60' style="backgroud-color:white;">
+    </td></tr></tbody></table>
+    </textarea>
+  </div>
+
+
+  <script>
+
+    
+    var weekdays = ['SUN','MON','TUE','WED','THUR','FRI','SAT'];
+    console.log("Vue instantiated");
+    var dayofweek = new Date().getDay();
+    var week =['TODAY'];
+    for(var i = 1; i<8; i++){
+      day = (dayofweek + i) % 7;
+      console.log(weekdays[day]);
+      week.push(weekdays[day]);
+    }
+
+    model_data = {"forecast":{{forecast|safe}},"members":[{'name':'john','username':''},{'name':'joe','username':''}]};
+
+    debugger;
+    var i = 0;
+    for(d of model_data['forecast']){
+      d['weekday'] = week[i];
+      i++;
+    };
+
+    var app = new Vue({
+      delimiters: ['[|', '|]'],
+      el: '#app',
+      data: model_data
+    })
+
+    log_model = {'memberlog':[],'activedate':""};
+
+    var imagespath = "{{url_for('static',filename = 'images')}}" + '/{{username}}';
+
+    var applog = new Vue({
+      delimiters: ['[|','|]'],
+      el: '#logtable',
+      data: log_model,
+      methods: {
+        fillDetail(i){
+          $('#expenditures_detail').val(log_model['memberlog'][i][3]);
+          $('#comments_detail').val(log_model['memberlog'][i][4]);
+          log_model['activedate'] = log_model['memberlog'][i][6];
+          $('#photobefore_img').attr('src', imagespath + "/" + log_model['memberlog'][i][8]);
+          $('#photoafter_img').attr('src', imagespath + "/" + log_model['memberlog'][i][9]);
+        },
+
+        clearDetail(){
+          $('#expenditures_detail').val("");
+          $('#comments_detail').val("");
+        },
+
+        photoBeforeChange(ele){
+          // Must be uploaded to images folder before it can be viewed
+          let photobefore = $('#photouploaded').val();
+          console.log("photoBeforeChange " + photobefore);
+        },
+        photoAfterChange(ele){
+          // Must be uploaded to images folder before it can be viewed
+          let photoafter = $('#photouploaded2').val();
+          console.log("photoAfterChange "  + photoafter);
+        }
+      }
+    })
+
+  </script>
+  <script type="text/javascript">
+    console.log(
+      "Set Ajax Loader"
+    )
+    jQuery(function ($){
+        $(document).ajaxStop(function(){
+          console.log("ajaxStop");
+            $("#ajax_loader").hide();
+         });
+         $(document).ajaxStart(function(){
+              console.log("ajaxStart");
+             $("#ajax_loader").show();
+         });
+    });
+  </script>
+
+</body>

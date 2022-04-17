@@ -1,0 +1,37 @@
+
+    <div style="background-color:#906666;font-family:sans-serif;" >
+      <script>
+        function addwork(){
+          windows.location = "/submitworkperformed";
+        }
+        function closework(){
+          windows.location = "/login"
+        }
+
+
+
+      </script>
+      <div id="workdone_table">
+        <table style="margin:10px;padding:10px;width:100%;background-color:white;color:black;">
+          <thead>
+            <tr style="background-color:gray;">
+              <th>Address</th><th>City</th><th>Description</th><th>Status</th>
+            </tr>
+          <tbody>
+          {% for work in workdone %}
+          <tr>
+            <td style="max-width:170px;">{{work[0]}}</td>
+            <td>{{work[1]}}</td>
+            <td style="max-width:180px;">{{work[4]}}</td>
+            <td>{{work[7]}}</td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- <input type='button' value="Add Work" onclick="addwork()"/>
+      <input type='button' value="Close" onclick="closework()"/> -->
+
+
+    </div>

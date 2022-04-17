@@ -1,0 +1,221 @@
+<html>
+<head>
+<style>
+body {
+ background-image: url("{{url_for('static',filename='images/twelveoaks.jpg')}}");
+  background-size: 1560px 1170px;
+
+  background-color:#FFF889;
+}
+   .input {
+     color:#000000
+   }
+   th, td {
+     padding: 3px;
+     text-align:left;
+   }
+
+   table {
+	   border-collapse: collapse;
+   }
+
+   .pagecontainer {
+	   background-color:#906666;
+	   width:575px;
+   }
+
+   .form {
+
+   }
+
+   .rowheader {
+	   text-align:right;
+	   width:150px;
+   }
+
+   .control {
+	   text-align:center;
+   }
+
+   input {
+	   width:200px;
+   }
+</style>
+<script type='text/javascript' src='//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js'></script>
+<script>
+  function onchangeCounty(ele){
+    let county = $(ele).val();
+    $.ajax({
+      url:'/register/getcountycities/'+county,
+      method: 'GET',
+      contentType: "application/json; charset=utf-8",
+      dataType: "json",
+      success:function(data){
+        let cities = data['cities'];
+        cities.forEach(function(city){
+            $("#cityselect").append("<option value='" + city +"'>" + city + "</option>");
+        });
+      },
+      error:function(error){
+        console.log(error);
+      }
+    })
+  }
+
+  function displaystreet(){
+    let num = $("input[name='streetnumber']").val();
+    let name = $("input[name='streetname']").val();
+    let dir = $("input[name='str_dir']:checked").val();
+    let suffix = $("select[name='street_suffix']").val();
+    if(dir == "NONE"){
+      dir = ''
+    }else{
+      dir = dir + ' ';
+    }
+    $('#sit_full_s').val(num + ' ' + dir + name + ' ' + suffix);
+
+  }
+
+  function cancel(){
+    window.location = "/login";
+  }
+</script>
+</head>
+<body style="background-color:#666666;font-family:sans-serif;" >
+  <br><br>
+  <center>
+  <h1 style="color:white;letter-spacing: 10px;">&nbsp;&nbsp;MY DEFENSIBLE SPACE</h1><br>
+  {{message}}
+  <div class='pagecontainer'>
+  <br>
+  <h3>REGISTER</h3>
+  <form action="/register" method="post">
+  <table  border="1" cellspacing="2" cellpadding="3" style="color:#ffffff; border: 0px solid #ffffff;background-color:#906666; margin:20px;"   >
+  <tbody>
+
+  <tr>
+    <td class='rowheader'>NAME:</td>
+    <td><input type="text" name="name" required /></td>
+  </tr>
+  <tr>
+    <td class='rowheader'>EMAIL:</td>
+    <td><input type="text" name="email" required /></td>
+  </tr>
+  <tr>
+    <td class='rowheader'>COUNTY</td>
+    <td>
+      <select id="countyselect" name="county" onchange="onchangeCounty(this)">
+        <option value="">SELECT</option>
+        <option value="placer">PLACER</option>
+        <option value="marin">MARIN</option>
+        <option value="nevada">NEVADA</option>
+      </select>
+    </td>
+  </tr>
+
+  <tr>
+    <td  colspan='2'>STREET DIRECTION</td>
+  </tr>
+  <tr>
+    <td colspan='2' style="font-size:10px;">
+      NONE<input type="radio" name="str_dir" value='NONE' style="width:40px;" checked />
+      NORTH<input type="radio" name="str_dir" value='N' style="width:40px;" />
+      SOUTH<input type="radio" name="str_dir" value='S' style="width:40px;" />
+      EAST<input type="radio" name="str_dir" value='E' style="width:40px;" />
+      WEST<input type="radio" name="str_dir" value='W' style="width:40px;" />
+    </td>
+  </tr>
+  <tr>
+    <td class='rowheader'>STREET</td>
+    <td>
+      STREET NUMBER:<br><input type="text" name="streetnumber" required  onchange="displaystreet()" /><br>
+      STREET NAME:<br><input type="text" name="streetname" required onchange="displaystreet()" /><br>
+      RD/ST/WY/LN..:
+      <select name="street_suffix" onchange="displaystreet()">
+        <option value=''>SELECT</option>
+        <option value='LN'>LANE</option>
+        <option value='ST'>STREET</option>
+        <option value='AVE'>AVENUE</option>
+        <option value='DR'>DRIVE</option>
+        <option value='WAY'>WAY</option>
+        <option value='RD'>ROAD</option>
+        <option value='BLVD'>BLVD</option>
+        <option value='PKWY'>PARKWAY</option>
+        <option value='PL'>PLACE</option>
+        <option value='CT'>COURT</option>
+        <option value="CIR">CIRCLE</option>
+        <option value='ALY'>ALLEY</option>
+        <option value='HWY'>HWY</option>
+        <option value='TR'>TRAIL</option>
+        <option value='other'>other</option>
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td>STREET ADDRESS</td>
+    <td><input type='text' id="sit_full_s" name='sit_full_s' disabled style="width:100%;"></span></td>
+  </tr>
+  <tr>
+    <td class='rowheader'>CITY:</td>
+    <td>
+      <select id="cityselect" name="cityselect" >
+        <option value="">
+          SELECT
+        </option>
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td class='rowheader'>STATE:</td>
+    <td><input type="text" name="state" required value='CA' style="width:40px;" /></td>
+  </tr>
+  <tr>
+    <td class='rowheader'>ZIP:</td>
+    <td><input type="text" name="zip" required /></td>
+  </tr>
+
+  <tr>
+    <td class='rowheader'>USERNAME:</td>
+    <td><input type="text" name="username" required /></td>
+  </tr>
+  <tr>
+    <td class='rowheader'>PASSWORD:</td>
+    <td><input type="text" name="password" required /></td>
+  </tr>
+
+  <tr>
+    <td class='rowheader'>MDS COMMUNITY</td>
+    <td><input type="text" name="community"/></td>
+  </tr>
+  <tr>
+    <td class='rowheader'>ROLE</td>
+    <td>
+      <select name="role">
+        <option value="NONE">NONE</option>
+        <option value="MEMBER">MEMBER</option>
+        <option value="LEADER">LEADER</option>
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td colspan='2' class='control'>
+      <input type="submit" value="SUBMIT"/>
+      <input type="button" value="CANCEL" onclick="cancel()"/></td>
+  </tr>
+  </tbody>
+</table>
+
+</form>
+<br>
+</div>
+
+</center>
+<script>
+console.log("set up radio detect")
+$('input[type=radio][name=str_dir]').change(function() {
+    console.log("call displystreet")
+    displaystreet();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<html>
+<head>
+<!--
+load jquery and mapping and leaflet.js scripts
+-->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+   integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+   crossorigin=""/>
+<!-- Make sure you put this AFTER Leaflet's CSS -->
+ <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+   integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+   crossorigin="">
+ </script>
+ <!--<script>
+  var coordinates = {{ coordinates|safe }};
+    mapping = new Mapping();
+    mapping.addToMap(name,idn,'red');
+    mapping.plotMap()
+  })
+ </script> -->
+ <script type='text/javascript' src='//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js'></script>
+ <script>
+
+
+
+  $(document).ready(function(){
+    console.log("jquery");
+  	showFireWiseCommunity();
+  });
+
+// /getfirewisecommunity/<string:county>/<string:city>/<string:firewise>
+  function showFireWiseCommunity(){
+    $.ajax({
+         url:"/getfirewisecommunity/{{county}}/{{city}}/{{community}}",
+         method: "GET",
+         contentType: "application/json; charset=utf-8",
+         dataType: "json",
+         success:function(geodata){
+            console.log(geodata);
+            var dutStyle = {
+              "color": 'red',
+              "weight":3,
+              "opacity":0.7,
+    		       "fillOpacity": 0.0,
+    		       "dashedArray": '2,4'
+            };
+
+            var geojson = L.geoJson(geodata, {
+              style: dutStyle
+            });
+            geojson.addTo(map);
+            map.fitBounds(geojson.getBounds());
+            map.zoomOut();
+          },
+          error: function(){
+            console.los("failed");
+          }
+      }
+    )
+
+  }
+
+ </script>
+ <style>
+    body {
+      background-image: url("{{url_for('static',filename='./images/Camp_Fire_oli_2018312_Landsat.jpg')}}");
+      color:#FFF;
+	     background-color:#F0D3AF;
+	    //background-image:url("./static/images/drygrassbackdrop.jpg");
+	}
+	.input {
+		color:#000000
+	}
+
+  	th, td {
+    	padding: 4px;
+  	}
+
+  	h3 {
+	  color:#000;
+  	}
+
+  	h1 {
+  		letter-spacing: 10px;
+	}
+</style>
+</head>
+<body style="background-color:#F0D3AF;font-family:sans-serif;" >
+  <br>
+  <center>
+    <h2 style="color:CF9999;">MY DEFENSIBLE SPACE<h2>
+      <h3 style="color:CF9999;">DEFENSIBLE SPACE COMMUNITY {{community}}</h3>
+    <table style="color:#ffffff; border: 1px solid #ffffff;background-color:#9F6666; ">
+      <tbody>
+        <tr>
+          <td colspan='4' valign="top" style="text-align:center;padding:20px"  >
+          <div id="map" style="height: 540px; border: 4px solid #000000; width: 650px;"></div>
+      	  <br>
+          {{address}}, &nbsp; {{city}} &nbsp; {{state}}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <br>
+    <div id='my-map'/>
+  </center>
+  <script>
+    var map = L.map( 'map', {
+        center: [20.0, 5.0],
+        minZoom: 2,
+        zoom: 2
+    });
+
+    L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{
+        maxZoom: 20,
+        subdomains:['mt0','mt1','mt2','mt3']
+    }).addTo( map );
+
+  </script>
+</body>

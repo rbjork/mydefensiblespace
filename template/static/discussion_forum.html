@@ -1,0 +1,75 @@
+<html>
+<head>
+  <title>MyDefensibleSpace</title>
+
+<script>
+function goBack() {
+  window.history.back();
+}
+</script>
+
+<style>
+   body {
+         background-image: url("{{url_for('static',filename='./drygrassbackdrop.jpg')}}");
+	   //background-image:url("./static/images/drygrassbackdrop.jpg");
+
+     background-color:#FFF889;
+   }
+
+   .input {
+     color:#000000;
+   }
+
+   table, th, td {
+     padding: 10px;
+     text-align:left;
+	 border-collapse: collapse;
+   }
+
+   input {
+	   width:200px;
+   }
+
+   .rowheader {
+	   text-align:right;
+   }
+
+   form {
+	   background-color:#906666;
+	   width:350px;
+   }
+
+   .buttonclass {
+	   background-color:#F0D3AF;
+   }
+</style>
+<script>
+	function gotohome(){
+		window.location.href = "home.html";
+	}
+</script>
+</head>
+<body style="background-color:#333333;font-family:sans-serif;" >
+  <br><br>
+  <center>
+
+  <br><br>
+  <table width="600px;"><tbody><tr><td style="background-color:#906666; padding:50px; color:white;">
+    <center>
+  <h3>Discussion Forum</h3>
+</center><br>
+<br>
+
+<p>
+We will have a pre-lackaged discussion forum application linked here so people can discuss their efforts in Defensible Space Management. </p>
+
+<br>
+<button onclick="goBack()">Back</button>
+
+</td></tr>
+
+</tbody></table><br>
+
+  </center>
+</body>
+</html>

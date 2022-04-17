@@ -1,0 +1,77 @@
+<html>
+<head>
+  <title>MyDefensibleSpace</title>
+
+<script>
+function goBack() {
+  window.history.back();
+}
+</script>
+
+<style>
+   body {
+         background-image: url("{{url_for('static',filename='./drygrassbackdrop.jpg')}}");
+	   
+
+     background-color:#FFF889;
+   }
+
+   .input {
+     color:#000000;
+   }
+
+   table, th, td {
+     padding: 10px;
+     text-align:left;
+	 border-collapse: collapse;
+   }
+
+   input {
+	   width:200px;
+   }
+
+   .rowheader {
+	   text-align:right;
+   }
+
+   form {
+	   background-color:#906666;
+	   width:350px;
+   }
+
+   .buttonclass {
+	   background-color:#F0D3AF;
+   }
+</style>
+<script>
+	function gotohome(){
+		window.location.href = "home.html";
+	}
+</script>
+</head>
+<body style="background-color:#333333;font-family:sans-serif;" >
+  <br><br>
+  <center>
+
+  <br><br>
+  <table width="600px;"><tbody><tr><td style="background-color:#906666; padding:50px; color:white;">
+    <center>
+  <h3>Marketplace</h3>
+</center><br>
+<br>
+
+<p>
+Here is the marketplace. Our aim here is to put homeowers and service providers together to facilitate defensible space management. </p>
+<p>
+We will have advertisements from service providers, and "help wanted" type ads from people needing help. We will also have a feedback mechanism so that homeowners can provide feedback on their experience.
+</p>
+
+<button onclick="goBack()">Back</button>
+
+</td></tr>
+
+</tbody></table><br>
+
+  </center>
+</body>
+</html>

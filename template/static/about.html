@@ -1,0 +1,81 @@
+<html>
+<head>
+  <title>MyDefensibleSpace</title>
+
+<script>
+function goBack() {
+  window.history.back();
+}
+</script>
+
+<style>
+   body {
+     background-image: url("{{url_for('static',filename='drygrassbackdrop.jpg')}}");
+	   //background-image:url("./static/images/drygrassbackdrop.jpg");
+
+     background-color:#FFF889;
+   }
+
+   .input {
+     color:#000000;
+   }
+
+   table, th, td {
+     padding: 10px;
+     text-align:left;
+	 border-collapse: collapse;
+   }
+
+   input {
+	   width:200px;
+   }
+
+   .rowheader {
+	   text-align:right;
+   }
+
+   form {
+	   background-color:#906666;
+	   width:350px;
+   }
+
+   .buttonclass {
+	   background-color:#F0D3AF;
+   }
+</style>
+<script>
+	function gotohome(){
+		window.location.href = "home.html";
+	}
+</script>
+</head>
+<body style="background-color:#333333;font-family:sans-serif;" >
+  <br><br>
+  <center>
+
+  <br><br>
+  <table width="600px;"><tbody><tr><td style="background-color:#906666; padding:50px; color:white;">
+    <center>
+  <h3>About Us</h3>
+</center><br>
+<br>
+Our Mission:<br>
+<p>
+We are a small group of tech entrepreneurs who have been committed for many years to community service and beneficial uses of technology to help society.</p>
+<p>
+Our goal with MyDefensibleSpace is to promote community awareness and a spirit of working together to manage defensible space in the Wildland Urban Interface (WUI).</p>
+<p>
+We hope to provide a community forum for homeowners and service providers to gather and find ways to meet the need to manage defensible space around their homes.</p>
+<p>
+We will present resources and information, point to other websites and resources for methods, practices, tools and equipment.</p>
+
+<button onclick="goBack()">Back</button>
+
+</td></tr>
+<!-- <tr><td style="background-color:#906666; padding:20px;"><a href="register"><b>REGISTER</b></a><br>
+<a href="login"><b>LOGIN</b></a></td></tr> -->
+</tbody></table><br>
+
+  </center>
+</body>
+</html>

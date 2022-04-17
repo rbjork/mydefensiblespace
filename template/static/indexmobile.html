@@ -1,0 +1,81 @@
+<html>
+<head>
+<style>
+
+   .input {
+     color:#000000;
+   }
+
+   table, tr{
+     padding: 20px;
+     text-align:left;
+	   border-collapse: collapse;
+   }
+
+   th, td {
+     padding: 10px;
+     text-align:left;
+	   border-collapse: collapse;
+   }
+
+   input {
+	   width:150px;
+   }
+
+   .rowheader {
+	   text-align:right;
+   }
+
+   form {
+	   background-color:#906666;
+	   width:250px;
+   }
+
+   .buttonclass {
+	   background-color:#F0D3AF;
+   }
+</style>
+<script>
+	function gotohome(){
+		window.location.href = "home.html";
+	}
+
+
+</script>
+<style>
+  body, td, a, input {
+    font-size: {{fontsize}}px;
+  }
+  h2 {
+    font-size: {{fontsize}}px;
+  }
+
+</style>
+</head>
+<body style="background-color:#666666;font-family:sans-serif;" >
+  <br><br>
+  <center>
+  <h2 style="color:white;letter-spacing: 10px;">MY DEFENSIBLE SPACE- ALPHA 0.9</h2>
+  <br><br>
+  <form action="/loginmobile" method="post" >
+  <table style="color:#ffffff; border: 0px solid #ffffff;background-color:#906666; padding=20px;">
+    <tbody>
+      <tr>
+      <td class='rowheader'><br>USERNAME:</td><td><br><input type="text" name="username" placeholder="anonomous" value="mbahlke"/></td>
+      </tr>
+      <tr>
+      <td class='rowheader'>PASSWORD:</td><td><input type="password" name="password" placeholder="********" value="password"/></td>
+      </tr>
+      <tr>
+      <td colspan="2" style="text-align:center;">
+        <input type="submit" class='buttonclass'  value="LOGIN" />
+      </td>
+      </tr>
+    </tbody>
+  </table>
+  </form>
+  <a href="register"><b>REGISTER</b></a><br><br>
+  <a href="registerbiz"><b>REGISTER BUSINESS</b></a>
+  </center
+</body>
+</html>

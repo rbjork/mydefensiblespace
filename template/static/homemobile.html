@@ -1,0 +1,784 @@
+<html>
+<head>
+  <title>MyDefensiblespace</title>
+<!--
+load jquery and mapping and leaflet.js scripts
+-->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+   integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+   crossorigin=""/>
+<!-- Make sure you put this AFTER Leaflet's CSS -->
+ <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+   integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+   crossorigin="">
+ </script>
+ <!--<script>
+  var coordinates = {{ coordinates|safe }};
+    mapping = new Mapping();
+    mapping.addToMap(name,idn,'red');
+    mapping.plotMap()
+  })
+ </script> -->
+ <script type='text/javascript' src='//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js'></script>
+ <script>
+
+ 	let address = "{{address}}";
+	let city = "{{city}}";
+
+	let community = "{{community}}";
+	let role = "{{role}}";
+	let members = "{{members}}";
+  let county = "{{county}}";
+  let xcoord = {{xcoord}};
+  let ycoord = {{ycoord}};
+
+  var geojsonCommunity = null;
+  var geo100 = null;
+  var geo30 = null;
+  var geo5 = null;
+  var geoStructures = null;
+  var geoCity = null;
+  var cityparcels = null;
+
+  var color100 = "gray";
+  var color30 = "gray";
+  var color5 = "gray";
+
+  var dopanandzoom = true;
+
+  function updateColors(){
+    map.eachLayer((layer) => {
+      if(!('_url' in layer)){
+        layer.remove();
+      }
+    });
+    dopanandzoom = false;
+    renderdefensiblespace(geo100);
+    renderCity(cityparcels);
+    renderstructures(geoStructures);
+    renderZone30(geo30);
+    renderZone5(geo5);
+  }
+
+  var userform = null;
+
+  function updateStatusRadio(){
+    $("input[name=z0][value=" + zone5 + "]").prop('checked', true);
+    $("input[name=z1][value=" + zone30 + "]").prop('checked', true);
+    $("input[name=z2][value=" + zone100 + "]").prop('checked', true);
+  }
+
+  function renderZone(geodata){
+    var geojson = L.geoJson(geodata,{
+      style:function(feature){
+        switch (feature.properties.status) {
+          case 'none': return {color: "red", weight:2, opacity:1.0, "fillOpacity":0.0};
+          case 'inprogress': return {color: "yellow", weight:2, opacity:1.0, fillOpacity:0.0};
+          case 'completed': return {color: "lightgreen", weight:2, opacity:1.0, fillOpacity:0.0};
+        }
+      }
+    })
+    geojson.addTo(map);
+  }
+
+  function reloadMySpace(){
+    map.eachLayer((layer) => {
+      if(!('_url' in layer)){
+        layer.remove();
+      }
+    });
+    showMYparcel();
+    showdefensiblespace();
+    //showcity();
+    //showMYstructures();
+    showZone30();
+    showZone5();
+  }
+
+  function fly2MemberParcel(ele){
+    latlng = $(ele).val();
+    latlngAr = latlng.split(',');
+    lat = parseFloat(latlngAr[0]);
+    lng = parseFloat(latlngAr[1]);
+    console.log(lat);
+    map.flyTo([lat,lng], 18);
+  }
+
+  function applyStatusHandlers(){
+    $("input[name='z0']").change(function(){
+      console.log("z0 click" + this.value);
+      if(this.value == 'none'){
+        color5 = "red";
+        zone5 = "none";
+      }else if(this.value == 'inprogress'){
+        color5 = "yellow";
+        zone5 = "inprogress";
+      }else if(this.value == "completed"){
+        color5 = "lightgreen";
+        zone5 = "inprogress";
+      }
+      updateColors();
+    })
+
+    $("input[name='z1']").change(function(){
+      console.log("z1 click" + this.value);
+      if(this.value == 'none'){
+        color30 = "red";
+        zone30 = "none";
+      }else if(this.value == 'inprogress'){
+        color30 = "yellow";
+        zone30 = "inprogress";
+      }else if(this.value == "completed"){
+        color30 = "lightgreen";
+        zone30 = "completed";
+      }
+      updateColors();
+    })
+    $("input[name='z2']").change(function(){
+      console.log("z2 click" + this.value);
+      if(this.value == 'none'){
+        color100 = "red";
+        zone100 = "none";
+      }else if(this.value == 'inprogress'){
+        color100 = "yellow";
+        zone100 = "inprogress";
+      }else if(this.value == "completed"){
+        color100 = "lightgreen";
+        zone100 = "completed";
+      }
+      updateColors();
+    })
+  }
+
+  function showcommunity(select){
+    let community = $(select).val();
+    getcommunity(community);
+    //alert("UNDER CONSTRUCTION");
+  }
+
+  function submitchanges(){
+    zone5 = $("input[name='z0']:checked").val();
+    zone30 = $("input[name='z1']:checked").val();
+    zone100 = $("input[name='z2']:checked").val();
+    let expenditures = $("#expenditures").val();
+    let comments = $("#comments").val();
+    $.ajax({
+         url:"myspaceupdate/{{county}}/{{city}}",
+         method: "POST",
+         data: JSON.stringify({ address:"{{address}}", z0:zone5, z1:zone30, z2:zone100, expenditures:expenditures, comments:comments }),
+         contentType: "application/json; charset=utf-8",
+         dataType: "json",
+         success:function(data){
+            console.log("success");
+          },
+          error: function(){
+            console.los("failed");
+          }
+      }
+    )
+  }
+
+  var zone5 = "{{zone5}}";
+  var zone30 = "{{zone30}}";
+  var zone100 = "{{zone100}}";
+
+  if(zone5 == 'none'){
+    color5 = 'red';
+  }else if(zone5 == 'inprogress'){
+    color5 = 'yellow';
+  }else{
+    color5 = 'lightgreen';
+  }
+
+  if(zone30 == 'none'){
+    color30 = 'red';
+  }else if(zone30 == 'inprogress'){
+    color30 = 'yellow';
+  }else{
+    color30 = 'lightgreen';
+  }
+
+  if(zone100 == 'none'){
+    color100 = 'red';
+  }else if(zone100 == 'inprogress'){
+    color100 = 'yellow';
+  }else{
+    color100 = 'lightgreen';
+  }
+
+  function getcommunity(community){
+    $.ajax({
+      url:"getfirewisecommunity/{{county}}/{{city}}/" + community,
+      method: "GET",
+      contentType: "application/json; charset=utf-8",
+      dataType: "json",
+      success: function(data){
+        var dutStyle = {
+          "color": 'skyblue',
+          "weight":1,
+          "opacity":1.0,
+          "fillColor": "red",
+          "fillOpacity": 0.0
+        };
+
+        console.log(data['parcels']);
+        geodata = JSON.parse(data['parcels']);
+        var geojson = L.geoJson(geodata, {
+          style: dutStyle
+        });
+
+        geojson.addTo(map);
+        try{
+          map.fitBounds(geojson.getBounds());
+        }catch(error){
+          console.log(error);
+        }
+
+        streets = [];
+        htmlitems = "<select size='20' style='width:100%;' onchange='fly2MemberParcel(this)'>";
+
+        for(let struct of geodata.features){
+          streets.push(struct.properties['sit_full_s']);
+          var lng = struct.properties['xcoord'];
+          var lat = struct.properties['ycoord'];
+          htmlitems += "<option value=" + lat + "," + lng + ">" + struct.properties['sit_full_s'] + "</option>";
+        }
+
+        htmlitems += "</select>";
+        userform = $("#rightpanel").html();  // SAVE PREVIOUS UI ELEMENT
+
+        $("#rightpanel").html(htmlitems);  // INSERT COMMINITY LIST
+        $("#maillistdiv").css('visibility','visible');  // TODO: TEST
+
+        console.log("calling renderZone for zone5");
+        renderZone(JSON.parse(data['zone5']));
+        console.log("calling renderZone for zone30");
+        renderZone(JSON.parse(data['zone30']));
+        console.log("calling renderZone for zone100");
+        renderZone(JSON.parse(data['zone100']));
+        console.log("done rendering zones");
+      }
+    })
+  }
+
+
+
+
+  $(document).ready(function(){
+    console.log("jquery");
+    updateStatusRadio();
+    // $("input[name=z0][value=" + zone5 + "]").prop('checked', true);
+    // $("input[name=z1][value=" + zone30 + "]").prop('checked', true);
+    // $("input[name=z2][value=" + zone100 + "]").prop('checked', true);
+
+    {% if member %}
+        console.log("user is member");
+    {% endif %}
+
+    $("input[name='entryformchoice']").change(function(){
+      debugger;
+      if(this.value == 'COMMUNITY'){
+
+        $.ajax({
+          url:"getfirewisecommunity/{{county}}/{{city}}/{{community}}",
+          method: "GET",
+          contentType: "application/json; charset=utf-8",
+          dataType: "json",
+          success: function(data){
+            var dutStyle = {
+              "color": 'skyblue',
+              "weight":1,
+              "opacity":1.0,
+              "fillColor": "red",
+              "fillOpacity": 0.0
+            };
+
+            console.log(data['parcels']);
+            geodata = JSON.parse(data['parcels']);
+            var geojson = L.geoJson(geodata, {
+              style: dutStyle
+            });
+
+            geojson.addTo(map);
+            try{
+              map.fitBounds(geojson.getBounds());
+            }catch(error){
+              console.log(error);
+            }
+
+            streets = [];
+            htmlitems = "<select size='20' style='width:100%;' onchange='fly2MemberParcel(this)'>";
+
+            for(let struct of geodata.features){
+              streets.push(struct.properties['sit_full_s']);
+              var lng = struct.properties['xcoord'];
+              var lat = struct.properties['ycoord'];
+              htmlitems += "<option value=" + lat + "," + lng + ">" + struct.properties['sit_full_s'] + "</option>";
+            }
+
+            htmlitems += "</select>";
+            
+
+            $("#rightpanel").html(htmlitems);  // INSERT COMMINITY LIST
+            $("#maillistdiv").css('visibility','visible');  // TODO: TEST
+
+            console.log("calling renderZone for zone5");
+            renderZone(JSON.parse(data['zone5']));
+            console.log("calling renderZone for zone30");
+            renderZone(JSON.parse(data['zone30']));
+            console.log("calling renderZone for zone100");
+            renderZone(JSON.parse(data['zone100']));
+            console.log("done rendering zones");
+          }
+        })
+      }else if(this.value == "MY SPACE"){
+        $("#maillistdiv").css('visibility','hidden');  // TODO: TEST
+        $("#rightpanel").html(userform);
+        reloadMySpace(); // TODO: may not be needed
+        applyStatusHandlers();
+        updateStatusRadio();
+
+      }else{
+        $("#rightpanel").html('<textarea id="geojson_txt" cols="30" rows="30"/>');
+      }
+    })
+    applyStatusHandlers();
+  });
+
+  function panAndZoom(street,city){
+
+  	for(let parcel of cityparcels.features){
+  		if(parcel.properties['sit_full_s'].indexOf(street) > -1){
+  			var geodata = {type:"FeatureCollection",features:[parcel]};
+  			var geojson = L.geoJson(geodata, {
+            		style: {}
+          	});
+  	  	map.fitBounds(geojson.getBounds());
+  			map.zoomOut();
+  			break;
+  		}
+  	}
+  }
+
+  function renderCity(geodata){
+      var dutStyle = {
+        "color": 'blue',
+        "weight":1,
+        "opacity":1.0,
+        "fillColor": "red",
+        "fillOpacity": 0.0
+      };
+
+     var dutStyleCommunity = {
+        "color": 'skyblue',
+        "weight":2,
+        "opacity":1.0,
+        "fillColor": "red",
+        "fillOpacity": 0.0
+      };
+
+    if(role == "leader"){
+      var geodataCommunity = {type:"FeatureCollection"};
+      var featuresCommunity = [];
+      var geodataNC = {type:"FeatureCollection"};
+      var features = [];
+
+      for(let struct of geodata.features){
+        try{
+          if('community_name' in struct.properties && struct.properties['community_name'].indexOf(community) > -1){
+            featuresCommunity.push(struct);
+          }else{
+            features.push(struct);
+          }
+        }catch(error){
+
+        }
+      }
+
+      geodataCommunity["features"] = featuresCommunity;
+      geodataNC["features"] = features;
+      var geojson = L.geoJson(geodataNC, {
+        style: dutStyle
+      })
+
+      geojsonCommunity = L.geoJson(geodataCommunity, {
+        style: dutStyleCommunity
+      })
+      geojson.addTo(map);
+
+    }else{
+
+      var geojson = L.geoJson(geodata, {
+        style: dutStyle
+      });
+      geojson.addTo(map);
+      if(dopanandzoom)map.fitBounds(geojson.getBounds());
+      if(dopanandzoom)panAndZoom(address,city);
+    }
+  }
+
+  function showcity(){
+    $.ajax({
+         url:"showcity/{{county}}/{{city}}",
+         method: "POST",
+         data: JSON.stringify({xcoord:{{xcoord}}, ycoord:{{ycoord}}}),
+         contentType: "application/json; charset=utf-8",
+         dataType: "json",
+         success: function(geodata){
+          cityparcels = geodata;
+          renderCity(geodata);
+      }
+    })
+  }
+
+  function renderstructures(geodata){
+    var dutStyle = {
+      "color": 'black',
+      "weight": 1,
+      "opacity": 1.0,
+      "fillOpacity": 0.0
+    };
+    var dutStyleRD = {
+      "color": 'black',
+      "weight": 1,
+      "opacity": 1.0,
+      "fillOpacity": 0.0
+    };
+
+    let needFix = false;
+
+    if(needFix){
+      var geodataRD = {type:"FeatureCollection"};
+      var featuresRD = [];
+      var geodataNotRD = {type:"FeatureCollection"};
+      var features = [];
+
+      for(let struct of geodata.features){
+        if(struct.properties['sit_full_s'].indexOf('RD') > -1){
+          featuresRD.push(struct);
+        }else{
+          features.push(struct);
+        }
+      }
+      geodataRD["features"] = featuresRD;
+      geodataNotRD["features"] = features;
+      var geojson = L.geoJson(geodataNotRD, {
+            style: dutStyle
+          })
+      var geojsonRD = L.geoJson(geodataRD, {
+            style: dutStyleRD
+      })
+      geojson.addTo(map);
+      geojsonRD.addTo(map);
+      if(dopanandzoom)map.fitBounds(geojson.getBounds());
+    }else{
+      var geojson = L.geoJson(geodata, {
+        style: dutStyle
+      });
+      geojson.addTo(map);
+      if(dopanandzoom)map.fitBounds(geojson.getBounds());
+    }
+  }
+
+  function showstructures(){
+    $.ajax({
+         url:"showstructures/{{county}}/{{city}}",
+         method: "POST",
+         data: JSON.stringify({xcoord:{{xcoord}}, ycoord:{{ycoord}}}),
+         contentType: "application/json; charset=utf-8",
+         dataType: "json",
+         success: function(geodata){
+            console.log(geodata);
+            geoStructures = geodata;
+            renderstructures(geodata)
+        },
+        error:function(error){
+          console.log("failed");
+        }
+      })
+  }
+
+  function showMYstructures(){
+    $.ajax({
+         url:"showmystructures/{{county}}/{{city}}",
+         method: "POST",
+         data: JSON.stringify({address:"{{address}}"}),
+         contentType: "application/json; charset=utf-8",
+         dataType: "json",
+         success: function(geodata){
+            console.log(geodata);
+            geoStructures = geodata;
+            renderstructures(geodata)
+        },
+        error:function(error){
+          console.log("failed");
+        }
+      })
+  }
+
+  function showMYparcel(){
+    $.ajax({
+         url:"showmyparcel/{{county}}/{{city}}",
+         method: "POST",
+         data: JSON.stringify({address:"{{address}}"}),
+         contentType: "application/json; charset=utf-8",
+         dataType: "json",
+         success: function(geodata){
+            console.log(geodata);
+            cityparcels = geodata;
+            renderCity(geodata);
+        },
+        error:function(error){
+          console.log("failed");
+        }
+      })
+  }
+
+  function renderdefensiblespace(geodata){
+      var dutStyle = {
+        "color": color100,
+        "weight":3,
+        "opacity":0.7,
+         "fillOpacity": 0.0,
+         "dashedArray": '2,4'
+      };
+
+      var geojson = L.geoJson(geodata, {
+        style: dutStyle
+      });
+      geojson.addTo(map);
+      if(geojsonCommunity != null){
+        geojsonCommunity.addTo(map);
+        if(dopanandzoom)map.fitBounds(geojsonCommunity.getBounds());
+      }else{
+        if(dopanandzoom)map.fitBounds(geojson.getBounds());
+      }
+  }
+
+  function showdefensiblespace(){
+    $.ajax({
+         url:"showzone100/{{county}}/{{city}}",
+         method: "POST",
+         data: JSON.stringify({address:"{{address}}"}),
+         contentType: "application/json; charset=utf-8",
+         dataType: "json",
+         success:function(geodata){
+            geo100 = geodata;
+            console.log(geodata);
+            //$("#comments").val();
+            //renderdefensiblespace(geodata);
+            renderZone(geodata)
+          },
+          error: function(er){
+            console.log("failed " + er);
+          }
+      }
+    )
+  }
+
+
+  function renderZone30(geodata){
+      var dutStyle = {
+        "color": color30,
+        "weight":2,
+        "opacity":0.7,
+        "fillOpacity": 0.0,
+        "dashedArray": '2,4'
+      };
+      var geojson = L.geoJson(geodata, {
+        style: dutStyle
+      });
+      geojson.addTo(map);
+  }
+
+  function showZone30(){
+
+    $.ajax({
+         url:"showzone30/{{county}}/{{city}}",
+         method: "POST",
+         data: JSON.stringify({ address:"{{address}}" }),
+         contentType: "application/json; charset=utf-8",
+         dataType: "json",
+         success:function(geodata){
+            console.log(geodata);
+            geo30 = geodata;
+
+            //renderZone30(geodata);
+            renderZone(geodata)
+            // if(geojsonCommunity != null){
+            //   geojsonCommunity.addTo(map);
+      		  //   map.fitBounds(geojsonCommunity.getBounds());
+            // }else{
+            //   map.fitBounds(geojson.getBounds());
+            // }
+          },
+          error: function(){
+            console.log("failed");
+          }
+      }
+    )
+  }
+
+  function renderZone5(geodata){
+      console.log(geodata);
+      var dutStyle = {
+        "color": color5,
+        "weight":2,
+        "opacity":0.8,
+         "fillOpacity": 0.0,
+         "dashedArray": '2,4'
+      };
+      var geojson = L.geoJson(geodata, {
+        style: dutStyle
+      });
+      geojson.addTo(map);
+  }
+
+  function showZone5(){
+
+    $.ajax({
+         url:"showzone5/{{county}}/{{city}}",
+         method: "POST",
+         data: JSON.stringify({ address:"{{address}}" }),
+         contentType: "application/json; charset=utf-8",
+         dataType: "json",
+         success:function(geodata){
+            geo5 = geodata;
+            renderZone(geodata)
+            //renderZone5(geodata);
+            // if(geojsonCommunity != null){
+            //   geojsonCommunity.addTo(map);
+      		  //   map.fitBounds(geojsonCommunity.getBounds());
+            // }else{
+            //   map.fitBounds(geojson.getBounds());
+            // }
+          },
+          error: function(err){
+            console.log("failed "+err);
+          }
+      }
+    )
+  }
+
+  function zoomhome(){
+    map.flyTo([{{ycoord}}, {{xcoord}}], 19);
+  }
+
+  // maillist support
+
+  function gotoLink(ele){
+    let link = $(ele).val();
+    window.location.href = link;
+  }
+
+
+
+
+ </script>
+ <style>
+    body {
+      background-image: url("{{url_for('static',filename='./images/Camp_Fire_oli_2018312_Landsat.jpg')}}");
+      color:#FFF;
+	     background-color:#F0D3AF;
+	    //background-image:url("./static/images/drygrassbackdrop.jpg");
+	}
+	.input {
+		color:#000000
+	}
+
+  	th, td {
+    	padding: 3px;
+  	}
+
+  	h3 {
+	  color:#000;
+  	}
+
+  	h1 {
+  		letter-spacing: 10px;
+	   }
+
+    td, th, a, input, select, body {
+       font-size: {{fontsize}}px;
+    }
+
+    input[type='radio'] {
+      transform: scale({{widgetscale}});
+    }
+</style>
+</head>
+<body style="background-color:#F0D3AF;font-family:sans-serif; margin:10px;" >
+  <br>
+  <center>
+    <!-- <h1 style="color:CF9999;">MY DEFENSIBLE SPACE</h1> -->
+    <table style="color:#ffffff; border: 1px solid #ffffff;background-color:#9F6666; width:100%; height:100%;">
+      <tbody>
+        <tr>
+          <td valign="top" style="padding:20px;background-color:805050;">
+            <!-- <ul id="tabs">
+                  <li><a id="tab1">FORM</a></li>
+                  <li><a id="tab2">MAP</a></li>
+            </ul> -->
+            <center>
+            <div class="container" id="tab1C">
+
+              <!-- <input type="radio" name="entryformchoice" value="TEST"/>TEST -->
+
+              <div id='rightpanel'>
+              {% if member %}
+                {% include "components/memberformmobile.html" %}
+              {% else %}
+
+                {% include "components/nonmemberform.html" %}
+              {% endif %}
+              </div>
+
+              <!-- <b>LINKS:</b><br><br>
+              <select onchange="gotoLink(this)">
+                <option value='html/marketplace'>Marketplace</a></option>
+                <option value='forum'>Discussion Forum</a></option>
+                <option value='html/company_store'>Company Store<</option>
+                <option value='html/about'>About Us</a></option>
+                <option value='html/contactus'>Contact Us</a></option>
+                <option value='html/legal'>Legal Mumbo Jumbo</a></option>
+                <option value='html/help'>Help</a></option>
+              </select> -->
+            </div>
+          </center>
+            <!-- </div>
+            <div id="map" class="container" id="tab2C" style="height: 90%; border: 2px solid #000000; width: 750px;">
+            </div> -->
+          </td>
+        </tr>
+        <!-- <tr>
+          <td style="background-color:#9F6666; vertical-align:top; padding:10px; color:blue;  line-height: 1.5;  width:150px; min-width:150px;" rowspan="2">
+          <br>
+
+          </td>
+        </tr> -->
+
+      </tbody>
+    </table>
+
+  </center>
+  <style>
+    .inactive {
+      display: hidden;
+    }
+  </style>
+  <script>
+
+    $('#tabs li a').click(function(){
+      var t = $(this).attr('id');
+      console.log('t='+t);
+      if($(this).hasClass('inactive')){ //this is the start of our condition
+        $('#tabs li').addClass('inactive');
+        $(this).removeClass('inactive');
+
+        $('.container').hide();
+        $('#'+ t + 'C').fadeIn('slow');
+     }
+    });
+
+  </script>
+</body>

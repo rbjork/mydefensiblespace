@@ -1,0 +1,1397 @@
+<html>
+<head>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+     integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+     crossorigin=""/>
+  <!-- Make sure you put this AFTER Leaflet's CSS -->
+   <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+     integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+     crossorigin="">
+   </script>
+   <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+<style>
+   body {
+     color:#FFF
+   }
+   .input {
+     color:#000000
+   }
+   th, td {
+     padding: 3px;
+     text-align:left;
+     vertical-align: top;
+   }
+
+   table {
+	   border-collapse: collapse;
+
+   }
+
+   .pagecontainer {
+	   background-color:#906666;
+     padding:10px;
+	   width:1280px;
+   }
+
+   .form {
+
+   }
+
+   .rowheader {
+	   text-align:right;
+	   width:150px;
+   }
+
+   .control {
+	   text-align:center;
+   }
+
+   input {
+	   width:200px;
+   }
+
+   workclass td {
+     min-width: 400px;
+   }
+
+   #workhistory {
+       position: absolute;
+       top: 150;
+   }
+
+
+     .button::-moz-focus-inner{
+       border: 0;
+       padding: 0;
+     }
+
+     .button{
+       display: inline-block;
+       *display: inline;
+       zoom: 1;
+       padding: 6px 20px;
+       margin: 0;
+       cursor: pointer;
+       border: 1px solid #bbb;
+       overflow: visible;
+       font: bold 13px arial, helvetica, sans-serif;
+       text-decoration: none;
+       white-space: nowrap;
+       color: #555;
+
+       background-color: #ddd;
+       background-image: -webkit-gradient(linear, left top, left bottom, from(rgba(255,255,255,1)), to(rgba(255,255,255,0)));
+       background-image: -webkit-linear-gradient(top, rgba(255,255,255,1), rgba(255,255,255,0));
+       background-image: -moz-linear-gradient(top, rgba(255,255,255,1), rgba(255,255,255,0));
+       background-image: -ms-linear-gradient(top, rgba(255,255,255,1), rgba(255,255,255,0));
+       background-image: -o-linear-gradient(top, rgba(255,255,255,1), rgba(255,255,255,0));
+       background-image: linear-gradient(top, rgba(255,255,255,1), rgba(255,255,255,0));
+
+       -webkit-transition: background-color .2s ease-out;
+       -moz-transition: background-color .2s ease-out;
+       -ms-transition: background-color .2s ease-out;
+       -o-transition: background-color .2s ease-out;
+       transition: background-color .2s ease-out;
+       background-clip: padding-box; /* Fix bleeding */
+       -moz-border-radius: 3px;
+       -webkit-border-radius: 3px;
+       border-radius: 3px;
+       -moz-box-shadow: 0 1px 0 rgba(0, 0, 0, .3), 0 2px 2px -1px rgba(0, 0, 0, .5), 0 1px 0 rgba(255, 255, 255, .3) inset;
+       -webkit-box-shadow: 0 1px 0 rgba(0, 0, 0, .3), 0 2px 2px -1px rgba(0, 0, 0, .5), 0 1px 0 rgba(255, 255, 255, .3) inset;
+       box-shadow: 0 1px 0 rgba(0, 0, 0, .3), 0 2px 2px -1px rgba(0, 0, 0, .5), 0 1px 0 rgba(255, 255, 255, .3) inset;
+       text-shadow: 0 1px 0 rgba(255,255,255, .9);
+
+       -webkit-touch-callout: none;
+       -webkit-user-select: none;
+       -khtml-user-select: none;
+       -moz-user-select: none;
+       -ms-user-select: none;
+       user-select: none;
+     }
+
+     .button:hover{
+       background-color: #eee;
+       color: #555;
+     }
+
+     .button:active{
+       background: #e9e9e9;
+       position: relative;
+       top: 1px;
+       text-shadow: none;
+       -moz-box-shadow: 0 1px 1px rgba(0, 0, 0, .3) inset;
+       -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .3) inset;
+       box-shadow: 0 1px 1px rgba(0, 0, 0, .3) inset;
+     }
+
+     .button[disabled], .button[disabled]:hover, .button[disabled]:active{
+       border-color: #eaeaea;
+       background: #fafafa;
+       cursor: default;
+       position: static;
+       color: #999;
+       /* Usually, !important should be avoided but here it's really needed :) */
+       -moz-box-shadow: none !important;
+       -webkit-box-shadow: none !important;
+       box-shadow: none !important;
+       text-shadow: none !important;
+     }
+
+     /* Smaller buttons styles */
+
+     .button.small{
+       padding: 4px 12px;
+     }
+
+     /* Larger buttons styles */
+
+     .button.large{
+       padding: 12px 30px;
+       text-transform: uppercase;
+     }
+
+     .button.large:active{
+       top: 2px;
+     }
+
+     /* Colored buttons styles */
+
+     .button.green, .button.red, .button.blue {
+       color: #fff;
+       text-shadow: 0 1px 0 rgba(0,0,0,.2);
+
+       background-image: -webkit-gradient(linear, left top, left bottom, from(rgba(255,255,255,.3)), to(rgba(255,255,255,0)));
+       background-image: -webkit-linear-gradient(top, rgba(255,255,255,.3), rgba(255,255,255,0));
+       background-image: -moz-linear-gradient(top, rgba(255,255,255,.3), rgba(255,255,255,0));
+       background-image: -ms-linear-gradient(top, rgba(255,255,255,.3), rgba(255,255,255,0));
+       background-image: -o-linear-gradient(top, rgba(255,255,255,.3), rgba(255,255,255,0));
+       background-image: linear-gradient(top, rgba(255,255,255,.3), rgba(255,255,255,0));
+     }
+
+     .file.red {
+       color: #fff;
+       text-shadow: 0 1px 0 rgba(0,0,0,.2);
+
+       background-image: -webkit-gradient(linear, left top, left bottom, from(rgba(255,255,255,.3)), to(rgba(255,255,255,0)));
+       background-image: -webkit-linear-gradient(top, rgba(255,255,255,.3), rgba(255,255,255,0));
+       background-image: -moz-linear-gradient(top, rgba(255,255,255,.3), rgba(255,255,255,0));
+       background-image: -ms-linear-gradient(top, rgba(255,255,255,.3), rgba(255,255,255,0));
+       background-image: -o-linear-gradient(top, rgba(255,255,255,.3), rgba(255,255,255,0));
+       background-image: linear-gradient(top, rgba(255,255,255,.3), rgba(255,255,255,0));
+     }
+
+     /* */
+
+     .button.green{
+       background-color: #70a070;
+       border-color: #57a957;
+     }
+
+     .button.green:hover{
+       background-color: #62c462;
+     }
+
+     .button.green:active{
+       background: #57a957;
+     }
+
+     /* */
+
+     .button.red{
+       background-color: #ca3535;
+       border-color: #c43c35;
+     }
+
+     .button.red:hover{
+       background-color: #ee5f5b;
+     }
+
+     .button.red:active{
+       background: #c43c35;
+     }
+
+     /* */
+
+     .button.blue{
+       background-color: #269CE9;
+       border-color: #269CE9;
+     }
+
+     .button.blue:hover{
+       background-color: #70B9E8;
+     }
+
+     .button.blue:active{
+       background: #269CE9;
+     }
+
+     /* */
+
+     .green[disabled], .green[disabled]:hover, .green[disabled]:active{
+       border-color: #57A957;
+       background: #57A957;
+       color: #D2FFD2;
+     }
+
+     .red[disabled], .red[disabled]:hover, .red[disabled]:active{
+       border-color: #C43C35;
+       background: #C43C35;
+       color: #FFD3D3;
+     }
+
+     .blue[disabled], .blue[disabled]:hover, .blue[disabled]:active{
+       border-color: #269CE9;
+       background: #269CE9;
+       color: #93D5FF;
+     }
+
+     /* Group buttons */
+
+     .button-group,
+     .button-group li{
+       display: inline-block;
+       *display: inline;
+       zoom: 1;
+     }
+
+     .button-group{
+       font-size: 0; /* Inline block elements gap - fix */
+       margin: 0;
+       padding: 0;
+       background: rgba(0, 0, 0, .1);
+       border-bottom: 1px solid rgba(0, 0, 0, .1);
+       padding: 7px;
+       -moz-border-radius: 7px;
+       -webkit-border-radius: 7px;
+       border-radius: 7px;
+     }
+
+     .button-group li{
+       margin-right: -1px; /* Overlap each right button border */
+     }
+
+     .button-group .button{
+       font-size: 13px; /* Set the font size, different from inherited 0 */
+       -moz-border-radius: 0;
+       -webkit-border-radius: 0;
+       border-radius: 0;
+     }
+
+     .button-group .button:active{
+       -moz-box-shadow: 0 0 1px rgba(0, 0, 0, .2) inset, 5px 0 5px -3px rgba(0, 0, 0, .2) inset, -5px 0 5px -3px rgba(0, 0, 0, .2) inset;
+       -webkit-box-shadow: 0 0 1px rgba(0, 0, 0, .2) inset, 5px 0 5px -3px rgba(0, 0, 0, .2) inset, -5px 0 5px -3px rgba(0, 0, 0, .2) inset;
+       box-shadow: 0 0 1px rgba(0, 0, 0, .2) inset, 5px 0 5px -3px rgba(0, 0, 0, .2) inset, -5px 0 5px -3px rgba(0, 0, 0, .2) inset;
+     }
+
+     .button-group li:first-child .button{
+       -moz-border-radius: 3px 0 0 3px;
+       -webkit-border-radius: 3px 0 0 3px;
+       border-radius: 3px 0 0 3px;
+     }
+
+     .button-group li:first-child .button:active{
+       -moz-box-shadow: 0 0 1px rgba(0, 0, 0, .2) inset, -5px 0 5px -3px rgba(0, 0, 0, .2) inset;
+       -webkit-box-shadow: 0 0 1px rgba(0, 0, 0, .2) inset, -5px 0 5px -3px rgba(0, 0, 0, .2) inset;
+       box-shadow: 0 0 1px rgba(0, 0, 0, .2) inset, -5px 0 5px -3px rgba(0, 0, 0, .2) inset;
+     }
+
+     .button-group li:last-child .button{
+       -moz-border-radius: 0 3px 3px 0;
+       -webkit-border-radius: 0 3px 3px 0;
+       border-radius: 0 3px 3px 0;
+     }
+
+     .button-group li:last-child .button:active{
+       -moz-box-shadow: 0 0 1px rgba(0, 0, 0, .2) inset, 5px 0 5px -3px rgba(0, 0, 0, .2) inset;
+       -webkit-box-shadow: 0 0 1px rgba(0, 0, 0, .2) inset, 5px 0 5px -3px rgba(0, 0, 0, .2) inset;
+       box-shadow: 0 0 1px rgba(0, 0, 0, .2) inset, 5px 0 5px -3px rgba(0, 0, 0, .2) inset;
+     }
+
+
+     .big {
+     font-size: 1.2em;
+   }
+
+   .small {
+     font-size: .7em;
+   }
+
+   .square {
+     width: .7em;
+     height: .7em;
+     margin: .5em;
+     display: inline-block;
+   }
+
+   /* Custom dropdown */
+   .custom-dropdown {
+     position: relative;
+     display: inline-block;
+     vertical-align: middle;
+     margin: 10px; /* demo only */
+   }
+
+   .custom-dropdown select {
+     background-color: #af3f3f;
+     color: #fff;
+     font-size: inherit;
+     padding: .5em;
+     padding-right: 2.5em;
+     border: 0;
+     margin: 0;
+     border-radius: 3px;
+     text-indent: 0.01px;
+     text-overflow: '';
+     -webkit-appearance: button; /* hide default arrow in chrome OSX */
+   }
+
+   .custom-dropdown::before,
+   .custom-dropdown::after {
+     content: "";
+     position: absolute;
+     pointer-events: none;
+   }
+
+   .custom-dropdown::after { /*  Custom dropdown arrow */
+     content: "\25BC";
+     height: 1em;
+     font-size: .625em;
+     line-height: 1;
+     right: 1.2em;
+     top: 50%;
+     margin-top: -.5em;
+   }
+
+   .custom-dropdown::before { /*  Custom dropdown arrow cover */
+     width: 2em;
+     right: 0;
+     top: 0;
+     bottom: 0;
+     border-radius: 0 3px 3px 0;
+   }
+
+   .custom-dropdown select[disabled] {
+     color: rgba(0,0,0,.3);
+   }
+
+   .custom-dropdown select[disabled]::after {
+     color: rgba(0,0,0,.1);
+   }
+
+   .custom-dropdown::before {
+     background-color: rgba(0,0,0,.15);
+   }
+
+   .custom-dropdown::after {
+     color: rgba(0,0,0,.4);
+   }
+</style>
+<style>
+      .main_div {
+          text-align:center;
+          position: relative;
+          left: 100px;
+          height: 20px;
+          width: 500px;
+
+      }
+      .sub_div {
+          position: absolute;
+          bottom: 0px;
+      }
+      p {
+          margin-left:110px;
+      }
+
+      .links_div {
+
+        padding: 10px;
+
+        background-color: #f0aaaa;
+      }
+
+      td {
+        padding:5px;
+      }
+  </style>
+<script type='text/javascript' src='//ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js'></script>
+<script>
+
+  var avatarIcon = L.icon({
+    iconUrl: 'public/images/users/{{username}}/{{avatar}}',
+    iconSize:     [38, 95], // size of the icon
+    shadowSize:   [50, 64], // size of the shadow
+    iconAnchor:   [22, 94], // point of the icon which will correspond to marker's location
+    shadowAnchor: [4, 62],  // the same for the shadow
+    popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+  })
+
+  var greenIcon = L.icon({
+      iconUrl: 'public/images/leaf-green.png',
+      shadowUrl: 'public/images/leaf-shadow.png',
+      iconSize:     [38, 95], // size of the icon
+      shadowSize:   [50, 64], // size of the shadow
+      iconAnchor:   [22, 94], // point of the icon which will correspond to marker's location
+      shadowAnchor: [4, 62],  // the same for the shadow
+      popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+  });
+
+  var yellowIcon = L.icon({
+      iconUrl: 'public/images/leaf-orange.png',
+      shadowUrl: 'public/images/leaf-shadow.png',
+      iconSize:     [38, 95], // size of the icon
+      shadowSize:   [50, 64], // size of the shadow
+      iconAnchor:   [22, 94], // point of the icon which will correspond to marker's location
+      shadowAnchor: [4, 62],  // the same for the shadow
+      popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+  });
+
+  var redIcon = L.icon({
+      iconUrl: 'public/images/leaf-red.png',
+      shadowUrl: 'public/images/leaf-shadow.png',
+      iconSize:     [38, 95], // size of the icon
+      shadowSize:   [50, 64], // size of the shadow
+      iconAnchor:   [22, 94], // point of the icon which will correspond to marker's location
+      shadowAnchor: [4, 62],  // the same for the shadow
+      popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+  });
+
+  function createGeoJsonPoint(name,point,color, avatar){
+    let leafGeoJson = null;
+    if(color == 'green'){
+      if(avatar != '' && avatar != 'None' && avatar != null){
+        leafGeoJson = L.marker([point['LAT'],point["LON"]], {icon: avatarIcon});
+      }else{
+        leafGeoJson = L.marker([point['LAT'],point["LON"]], {icon: greenIcon});
+      }
+    }else if(color == 'yellow'){
+      leafGeoJson = L.marker([point['LAT'],point["LON"]], {icon: yellowIcon});
+    }else{
+      leafGeoJson = L.marker([point['LAT'],point["LON"]], {icon: redIcon});
+    }
+
+
+    // var ptjson = {
+    //   "type":"Feature",
+    //   "geometry": {
+    //     "type":"Point",
+    //     "coordinates":[point['LON'],point["LAT"]]
+    //   },
+    //   "properties": {
+    //     "name":name
+    //   }
+    // }
+    //
+    // var pinStyle = {
+    //   "color":color,
+    //   "weight":3,
+    //   "opacity":0.75
+    // }
+    //
+    // var pinGeoJson = L.geoJson(ptjson, {
+    //   style: pinStyle,
+    //   onEachFeature: function(feature,layer){
+    //     console.log("do stuff")
+    //   }
+    // })
+
+    return leafGeoJson;
+  }
+
+  function placePins(name,point,color){
+    let ptgeo = createGeoJsonPoint(name,point,color)
+    ptgeo.addTo(map);
+  }
+
+
+  function onchangeCounty(ele){
+    let county = $(ele).val();
+    $.ajax({
+      url:'/register/getcountycities/'+county,
+      method: 'GET',
+      contentType: "application/json; charset=utf-8",
+      dataType: "json",
+      success:function(data){
+        let cities = data['cities'];
+        $("#cityselect").html("<option>SELECT<option>");
+        cities.forEach(function(city){
+            $("#cityselect").append("<option value='" + city +"'>" + city + "</option>");
+        });
+      },
+      error:function(error){
+        console.log(error);
+      }
+    })
+  }
+
+  var workdata = null;
+  var coordinates = null;
+
+
+
+  var latc = 0;
+  var lngc = 0;
+  let avatar = "{{avatar|safe}}";
+
+  function getReverseGeoCode(lat,lng){
+    latc = lat;
+    lngc = lng;
+    let city = $("#cityselect").val();
+    if(city == null || city == ''){
+      return;
+    }
+    $.ajax({
+         url:"getparcelat/{{county}}",
+         method: "POST",
+         data: JSON.stringify({'lat':lat,'lng':lng,'city':city}),
+         contentType: "application/json; charset=utf-8",
+         dataType: "json",
+         success: function(addressdata){
+            let address = addressdata['address'];
+            if(address != null){
+              let streetaddress = address[0];
+              let parts = streetaddress.split(' ');
+              let street_num = parts[0];
+              let street_name = parts.slice(1,parts.length-1).join(' ');
+              let street_suffix = parts[parts.length-1];
+              let city = address[1];
+              let state = address[2];
+              let zipcode = address[3];
+              let lng = address[4];
+              let lat = address[5];
+              $('#sit_full_s').val(streetaddress);
+              //debugger;
+              //ptgeo = createGeoJsonPoint(streetaddress,{'LON':lng,'LAT':lat},'yellow')
+              //ptgeo.addTo(map);
+              $("input[name='streetnumber']").val(street_num);
+              $("input[name='streetname']").val(street_name);
+              console.log(streetaddress + " " + city);
+              $("select[name='street_suffix']").val(street_suffix);
+            }
+        },
+        error:function(error){
+          console.log("failed");
+        }
+      })
+  }
+
+  function workdonemap(){
+    //$("#workhistory").html('');
+    $("#workhistory").css('display',"none");
+    $("#workdone_map").css('display',"block");
+
+    let name = $("input[name='name']").val();
+    $.ajax({
+      url:'/workdone/'+'{{county}}',
+      method: 'POST',
+      contentType: "application/json; charset=utf-8",
+      data: JSON.stringify({'name':name}),
+      dataType: "json",
+      success:function(data){
+        //let workdone = data['workdone'];
+        //$("#workhistory").html(workdone);
+        workdata = data['workdata'];
+
+
+        coordinates = data['coordinates'];
+        var latmin = 90;
+        var latmax = -90;
+        var lonmin = 180;
+        var lonmax = -180;
+
+        if(workdata.length == 0){
+          return;
+        }
+
+        for(var i=0; i<coordinates.length; i++){
+          let c = coordinates[i];
+          let lat = c['LAT'];
+          let lon = c['LON'];
+          let w = workdata[i];
+          let status = w[7];
+          console.log("lat lon " + lat + " " + lon);
+          latmin = Math.min(lat,latmin);
+          latmax = Math.max(lat,latmax);
+          lonmin = Math.min(lon,lonmin);
+          lonmax = Math.max(lon,lonmax);
+
+          if(status == "DONE" || status == "completed"){
+            placePins("test",c,'green', avatar);
+          }else if(status == "inprogress"){
+            placePins("test",c,'yellow', avatar);
+          }else{
+            placePins("test",c,'red', avatar);
+          }
+        }
+        console.log("lon " + lonmax + " " + lonmin);
+        console.log("lat " + latmax + " " + latmin);
+        if((latmax-latmin > .0002) && (lonmax-lonmin > .0002)){
+          map.fitBounds([
+            [latmin,lonmin],
+            [latmax,lonmax]
+          ])
+        }else{
+          map.panTo(
+            [(latmax+latmin)/2,(lonmax+lonmin)/2]
+          )
+        }
+
+        //$("#workhistory").dialog('open');
+      },
+      error:function(error){
+        console.log(error);
+      }
+    })
+
+  }
+
+  var ctyboundary = null;
+
+  function gotoCounty(ele){
+    let cty = '{{county}}';
+
+    $.ajax({
+         url:"getcommunitiesctygeo/" + cty,
+         method: "POST",
+         data: JSON.stringify({ county:cty }),
+         contentType: "application/json; charset=utf-8",
+         dataType: "json",
+         success:function(data){
+
+            // var mdscoms = data['mdscoms'];
+            // $.each(mdscoms, function(i, p) {
+            //     $('#firewiselist').append($('<option></option>').val(p).html(p));
+            // });
+            var dutStyle = {
+              "color": 'darkblue',
+              "weight":2,
+              "opacity":1.0,
+              "fillColor": "red",
+              "fillOpacity": 0.0
+            };
+            map.eachLayer((layer) => {
+              if(!('_url' in layer)){
+                layer.remove();
+              }
+            });
+
+            let geodata = JSON.parse(data['ctyboundary']);
+            var geojson = L.geoJson(geodata, {
+              style: dutStyle
+            });
+            ctyboundary = geojson;
+            geojson.addTo(map);
+            map.fitBounds(geojson.getBounds());
+          }
+        }
+      )
+  }
+
+  function placePins(name,point,color,avatar){
+    let ptgeo = createGeoJsonPoint(name,point,color,avatar)
+    ptgeo.addTo(map);
+  }
+
+  debugger;
+
+  function workhistory(){
+    console.log("workhistory");
+    //let county = $("select[name='county']").val();
+    let name = $("input[name='name']").val();
+
+    $.ajax({
+      url:'/workdone/'+'{{county}}',
+      method: 'POST',
+      contentType: "application/json; charset=utf-8",
+      data: JSON.stringify({'name':name}),
+      dataType: "json",
+      success:function(data){
+        let workdone = data['workdone'];
+        //$("#workhistory").html(workdone);
+        $("#workdone_map").css('display',"none");
+        $("#workhistory").css('display',"block");
+
+        workdata = data['workdata'];
+        wkapp_model['work'] = workdata;
+
+        coordinates = data['coordinates'];
+        if(workdata.length == 0){
+          return;
+        }
+        var latmin = 90;
+        var latmax = -90;
+        var lonmin = 180;
+        var lonmax = -180;
+
+        for(var c of coordinates){
+          let lat = c['LAT'];
+          let lon = c['LON'];
+          console.log("lat lon " + lat + " " + lon);
+          latmin = Math.min(lat,latmin);
+          latmax = Math.max(lat,latmax);
+          lonmin = Math.min(lon,lonmin);
+          lonmax = Math.max(lon,lonmax);
+          placePins("test",c,'yellow');
+        }
+        console.log("lon " + lonmax + " " + lonmin);
+        console.log("lat " + latmax + " " + latmin);
+        if((latmax-latmin > .001) && (lonmax-lonmin > .001)){
+          map.fitBounds([
+            [latmin,lonmin],
+            [latmax,lonmax]
+          ])
+        }else{
+          map.panTo(
+            [(latmax+latmin)/2,(lonmax+lonmin)/2]
+          )
+        }
+
+        //$("#workhistory").dialog('open');
+      },
+      error:function(error){
+        console.log(error);
+      }
+    })
+  }
+
+  // This need to be replaced by form submit type
+  // function submitworkperformed(){
+  //   console.log("submitworkperformed");
+  //   $( "#workform" ).submit(function( event ) {
+  //     alert( "Success in submission" );
+  //   })
+  //   return;
+  //
+  //   var datavals = {};
+  //   $("#workform").serializeArray().map(function(x){datavals[x.name] = x.value;});
+  //   datavals['name'] = $("input[name='name']").val();
+  //   datavals['bizcity'] = $("input[name='bizcity']").val();
+  //   console.log(datavals);
+  //   $.ajax({
+  //     url:'/submitworkperformed2/'+'{{county}}',
+  //     method: 'POST',
+  //     contentType: "application/json; charset=utf-8",
+  //     data: JSON.stringify(datavals),
+  //     dataType: "json",
+  //     success:function(data){
+  //       alert("Submitted");
+  //     },
+  //     error:function(error){
+  //       console.log("failed");
+  //     }
+  //   })
+  // }
+
+  function closeform(){
+    window.location = "/logout";
+  }
+
+  function displaystreet(){
+    let num = $("input[name='streetnumber']").val();
+    let name = $("input[name='streetname']").val();
+    let dir = $("input[name='str_dir']:checked").val();
+    let suffix = $("select[name='street_suffix']").val();
+    if(dir == "NONE"){
+      dir = ''
+    }else{
+      dir = dir + ' ';
+    }
+    $('#sit_full_s').val(num + ' ' + dir + name + ' ' + suffix);
+  }
+
+  function communitysel(ele){
+
+    console.log("community_sel");
+    let community = $(ele).val();
+    let datavals = {'community':community};
+    $.ajax({
+      url:'/communityparcels/'+'{{county}}',
+      method: 'POST',
+      contentType: "application/json; charset=utf-8",
+      data: JSON.stringify(datavals),
+      dataType: "json",
+      success:function(data){
+        var dutStyle = {
+          "color": 'darkblue',
+          "weight":2,
+          "opacity":1.0,
+          "fillColor": "red",
+          "fillOpacity": 0.0
+        };
+        // map.eachLayer((layer) => {
+        //   if(!('_url' in layer)){
+        //     layer.remove();
+        //   }
+        // });
+        let geodata = JSON.parse(data);
+        var geojson = L.geoJson(geodata, {
+          style: dutStyle
+        });
+        geojson.addTo(map);
+        map.fitBounds(geojson.getBounds());
+      },
+      error:function(error){
+        console.log("failed");
+      }
+    })
+  }
+
+  function renderZone(geodata){
+    var geojson = L.geoJson(geodata,{
+      style:function(feature){
+        switch (feature.properties.status) {
+          case 'none': return {color: "red", weight:2, opacity:1.0, "fillOpacity":0.0};
+          case 'inprogress': return {color: "yellow", weight:2, opacity:1.0, fillOpacity:0.0};
+          case 'completed': return {color: "lightgreen", weight:2, opacity:1.0, fillOpacity:0.0};
+        }
+      }
+    })
+    geojson.addTo(map);
+  }
+
+  function zoomToAddress(){
+    let address = $("#sit_full_s").val();
+    let cityselect = $("#cityselect").val();
+    let county = $("#countyselect").val();
+    $.ajax({
+      url:"getlatlonfromaddress/"+county,
+      method: "POST",
+      data: JSON.stringify({'address':address, 'city':cityselect}),
+      contentType: "application/json; charset=utf-8",
+      dataType: "json",
+      success: function(data){
+
+        let lat = data['latitude'];
+        let lon = data['longitude'];
+
+        map.flyTo([lat, lon], 18);
+
+        renderZone(JSON.parse(data['zone5']));
+        renderZone(JSON.parse(data['zone30']));
+        renderZone(JSON.parse(data['zone100']));
+
+        var dutStyle = {
+          "color": 'darkblue',
+          "weight":2,
+          "opacity":1.0,
+          "fillColor": "red",
+          "fillOpacity": 0.0
+        };
+
+        let geodata = JSON.parse(data['parcel']);
+        var geojson = L.geoJson(geodata,{
+          style:dutStyle
+        })
+        geojson.addTo(map);
+
+      },
+      error: function(e){
+        console.log()
+      }
+    })
+  }
+
+
+    function onEachFireThreatPolygon(feature, layer){
+      var haz_code = 0;
+      for(var p in feature.properties){
+        console.log("threat p value "+p);
+        if(p == "haz_code"){
+          haz_code = feature.properties[p];
+          var color = "blue";
+          if(haz_code == 1){
+            color = "yellow";
+          }else if(haz_code == 2){
+            color = "orange";
+          }else if(haz_code == 3){
+            color = "red";
+          }
+          layer.setStyle({
+            "color": color,
+            "weight":1,
+            "opacity":1,
+            "fillOpacity": 0.4,
+          })
+          break;
+        }
+      }
+    }
+
+  function showfirethreat(ele){
+
+    if($(ele).val() == "SHOW FIRE THREAT"){
+      $(ele).val("HIDE FIRE THREAT");
+    }else{
+      $(ele).val("SHOW FIRE THREAT");
+      reloadMySpace();
+      return;
+    }
+
+    $.ajax({
+         url:"countyfirethreat/{{county}}",
+         method: "GET",
+         contentType: "application/json; charset=utf-8",
+         dataType: "json",
+         success:function(geodata){
+
+            var fireStyle = {
+              "color": 'red',
+              "weight":2,
+              "opacity":0.5,
+              "fillOpacity": 0.0,
+              "dashedArray": '2,4'
+            };
+
+            var geojson = L.geoJson(geodata, {
+              onEachFeature: onEachFireThreatPolygon
+            });
+
+            var ctystyle = {
+              "color": 'white',
+              "weight":2,
+              "opacity":1,
+               "fillOpacity": 0.0,
+               "dashedArray": '2,4'
+            };
+
+            // var geoCountyBdy = L.geoJson(countyBoundary,{
+            //   style:ctystyle
+            // })
+            //
+            // geoCountyBdy.addTo(map);
+            geojson.addTo(map);
+            map.fitBounds(geojson.getBounds());
+
+      			//map.zoomOut();
+          },
+          error: function(er){
+            console.log("failed countyfirehistory " + er.toString());
+          }
+        }
+      )
+  }
+
+  function reloadMySpace(){
+    map.eachLayer((layer) => {
+      if(!('_url' in layer)){
+        layer.remove();
+      }
+    });
+
+    ctyboundary.addTo(map);
+    map.fitBounds(ctyboundary.getBounds());
+    // showMYparcel();
+    // showdefensiblespace();
+    // //showcity();
+    // //showMYstructures();
+    // showZone30();
+    // showZone5();
+    // workhistory();
+  }
+
+
+</script>
+</head>
+<body style="background-color:#432f29;font-family:sans-serif;" >
+  <style>
+    .radio {
+      width:10px;
+    }
+
+    tr {
+      border:1px solid #af6f6f;
+
+    }
+
+    .custom-file-upload {
+        border: 1px solid #ccc;
+        display: inline-block;
+        padding: 6px 12px;
+        cursor: pointer;
+        width:90%;
+    }
+
+    img {
+      max-width: 180px;
+      height: 130px;
+    }
+
+  </style>
+
+  <center>
+
+  <div class='pagecontainer'>
+    <h2 style="color:white;letter-spacing: 10px;">&nbsp;&nbsp;MY DEFENSIBLE SPACE</h2>
+
+  <form action="/submitworkperformed" method="post" enctype="multipart/form-data" id="workform">
+  <table  border="2" cellspacing="2" cellpadding="3" style="color:#ffffff; border: 8px solid #794949;background-color:#794949; margin:10px;"   >
+    <colgroup>
+      <col span="1" style="width: 12%;"></col>
+      <col span="1" style="width: 25%;"></col>
+      <col span="1" style="width: 43%;"></col>
+      <col span="1" style="width: 20%;"></col>
+    </colgroup>
+  <tbody>
+  <tr style="font-size:18px;font-weight:bold;"><td colspan='2'>
+    <center>
+      <span>WORK SUBMISSION FORM</span><br>
+    </center>
+  </td>
+  <td style="width:40%;">
+    &nbsp;&nbsp;<span>WORK MAP</span>&nbsp;&nbsp;&nbsp;&nbsp;
+      <!-- SHOW COMMUMITY:<select name="community_sel" onchange="communitysel(this)">
+      {% for com in communities %}
+        <option>{{com}}</option>
+      {% endfor %}
+    </select> -->
+    <!-- <input name="directions_btn" type="button" value="GET DIRECTIONS" disabled style="width:145px;"/> -->
+  </td>
+  <td>LINKS</td>
+  </tr>
+  <tr>
+
+    <td colspan='2'>
+      <input type="text" name="name"  disabled value='{{name}}' style="background-color:#794949;color:white;font-size:16px;textalign:center;width:97%;" />&nbsp;&nbsp;
+    </td>
+    <td rowspan='17' style="background-color:#996666;">
+
+      <div id='workhistory'>
+        <table>
+          <thead>
+            <tr style="background-color:gray;">
+              <th>Address</th><th>City</th><th>Description</th><th>State</th><th>Photo</th>
+            </tr>
+          <tbody>
+          <tbody style="background-color:white; color:black;">
+          <tr v-for="(row,i) in work">
+            <td style="max-width:170px;">[|row['address']|]</td>
+            <td>[|row['city']|]</td>
+            <td style="max-width:170px;">[|row['description']|]</td>
+            <td>[|row['status']|]</td>
+            <td style="max-width:25px;"><input type='button' value="+" v-on:click="showphotos(row['photobefore'],row['photoafter'])" style="width:20px;"/><td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+
+      <div id="workdone_map" style="height: 570px; border: 2px solid #000000; width: 590px;">
+
+      </div>
+
+    </td>
+    <td rowspan='16' >
+      <div id="app">
+
+      <div class='links_div'>
+      {% if county != "placer" %}
+      <span>SITE LINKS</span><br>
+      {% endif %}
+
+      <a href='changeprofile/{{role}}/{{community}}/{{username}}'>Edit My Profile</a><br>
+      <a href='html/marketplace'>Marketplace</a><br>
+      <a href='forum'>Discussion Forum<br>
+      <a href='html/company_store'>Company Store</a><br>
+      <a href='html/about'>About Us</a><br>
+      <a href='html/contactus'>Contact Us</a><br>
+      <a href='html/legal'>Legal Mumbo Jumbo</a><br>
+
+      {% if county == "placer" %}
+        <a href="https://www.placerair.org/1671/Burn-Days">Burn Day Status</a><br>
+      {% endif %}
+      <br>
+      <center>
+        <input type="button" value="SHOW PAST WORK LIST" style="width:100%;" onclick="workhistory()" class="small red button" /><br>
+        <input type="button" value="SHOW PAST WORK MAP" style="width:100%;" onclick="workdonemap()" class="small red button" /><br>
+        <input type="button" value="RELOAD COUNTY" style="width:100%;" onclick="reloadMySpace()" class="small red button" /><br>
+        <input type='button' value="SHOW FIRE THREAT" onclick="showfirethreat(this)" class="small red button" style="width:100%;"/>
+        <div id="weather" style="background-color:#666666;color:lightgreen;border: 2px solid #505050;">&nbsp;&nbsp;Temp: {{temp}}&deg;F &nbsp;Humidity: {{humidity}}%</div>
+        <!-- <input type='button' value="SHOW 7 DAY FORECAST" class="small red button" style="width:100%;" onclick="showforecast(this)"/> -->
+
+
+        <div id="forecastdisplay" style="display:block;background-color:white;color:black;height:275px;">
+          <table style="width:100%; background-color:white;color:black;font-size:14px;">
+            <thead style="text-align:left;" ><tr>
+              <th>DAY</td><th>TEMP</th><th>HUMIDITY</th><th>SKY</th>
+            </tr></thead>
+            <tbody>
+              <tr v-for="(item,index) in forecast">
+                <td>[|item['weekday']|]</td>
+                <td>[|item["temp"]|]&deg;F</td>
+                <td>[|item["humidity"]|]%</td>
+                <td>[|item["weather"]|]</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </center>
+    </div>
+    </td>
+  </tr>
+  <tr>
+    <td colspan='2' >
+      <input type="text" name="bizcity" value="{{city.upper()}}" disabled style="background-color:#794949;color:white;width:40%;font-size:16px;" />&nbsp;&nbsp;
+      {{county.upper()}} &nbsp; COUNTY
+    </td>
+  </tr>
+ <tr ><td colspan='2' style="background-color:#604040"></td></tr>
+    <tr style="font-size:14px;">
+      <td>&nbsp;NUMBER</td>
+      <td>&nbsp;STREET NAME</td>
+    </tr>
+    <tr>
+    <td>
+      <input type="text" name="streetnumber" required  style="width:80px;" onchange="displaystreet()"/>
+    </td>
+    <td style="white-space:nowrap;">
+      <input type="text" name="streetname" required style="width:170px;" onchange="displaystreet()"  />
+
+      <select name="street_suffix" onchange="displaystreet()">
+        <option value=''>SELECT</option>
+        <option value='LN'>LANE</option>
+        <option value='ST'>STREET</option>
+        <option value='AVE'>AVENUE</option>
+        <option value='DR'>DRIVE</option>
+        <option value='WAY'>WAY</option>
+        <option value='RD'>ROAD</option>
+        <option value='BLVD'>BLVD</option>
+        <option value='PKWY'>PARKWAY</option>
+        <option value='PL'>PLACE</option>
+        <option value='CT'>COURT</option>
+        <option value="CIR">CIRCLE</option>
+        <option value='ALY'>ALLEY</option>
+        <option value='HWY'>HWY</option>
+        <option value='TR'>TRAIL</option>
+        <option value='other'>other</option>
+      </select>
+
+    </td>
+  </tr>
+  <tr>
+    <td colspan='2' style="font-size:14px;">&nbsp;
+      NONE<input type="radio" name="str_dir" value='NONE' style="width:19px;" checked onchange="displaystreet()"/>
+      NORTH<input type="radio" name="str_dir" value='N' style="width:19px;" />
+      SOUTH<input type="radio" name="str_dir" value='S' style="width:19px;" />
+      EAST<input type="radio" name="str_dir" value='E' style="width:18px;" />
+      WEST<input type="radio" name="str_dir" value='W' style="width:18px;" />
+    </td>
+  <tr>
+
+  <tr style="font-size:14px;">
+    <td colspan='2' style="white-space:nowrap;">
+      &nbsp;CITY:<select id="cityselect" name="cityselect" onchange='cityselection(this)' style="min-width:100px;">
+        <option value="">
+          SELECT
+        </option>
+      </select>
+      STATE:<input type="text" name="state" required value='CA' style="width:30px;" />
+      ZIP:<input type="text" name="zip" required style="width:80px;"/>
+    </td>
+  </tr>
+
+  <tr style="font-size:14px;">
+
+    <td colspan="2" style="white-space:nowrap;">
+      &nbsp;COUNTY:
+      <select id="countyselect" name="county" onchange="onchangeCounty(this)" value="{{county}}">
+        <option value="">SELECT</option>
+        <option value="placer">PLACER</option>
+        <option value="marin">MARIN</option>
+        <option value="nevada">NEVADA</option>
+      </select>
+
+      &nbsp;&nbsp;STATUS:
+      <select name=status>
+        <option value="planned">planned</option>
+        <option value="inprogress">in progress</option>
+        <option value="completed">completed</option>
+      </select>&nbsp;&nbsp;
+    </td>
+  </tr>
+  <tr style="font-size:14px;">
+    <td colspan='2' >
+      &nbsp;<input type='text' id="sit_full_s" disabled  style="width:260px;"/>
+      <input type="button" onclick="zoomToAddress()" value="ZOOM TO" class="small red button"  style="width:80px;"/>
+    </td>
+  </tr>
+  <tr><td colspan='2' style="background-color:#604040;"></td></tr>
+  <tr style="font-size:14px;">
+  <td colspan='2'>
+    <!-- <input type="text" name="status"  /> -->
+      <label for="photouploaded" class="custom-file-upload">
+        PHOTO BEFORE
+      <input id='photouploaded' type="file" name="photobefore" />
+
+      </label>
+  </td>
+</tr>
+<tr style="font-size:14px;">
+<td colspan='2'>
+  <!-- <input type="text" name="status"  /> -->
+    <label for="photouploaded" class="custom-file-upload">
+      PHOTO AFTER &nbsp;&nbsp;
+    <input id='photouploaded' type="file" name="photoafter" />
+
+    </label>
+</td>
+</tr>
+  <tr style="font-size:14px;">
+    <td colspan='2'>&nbsp;WORK DONE:&nbsp;
+      DESCRIPTION<input class="radio" type="radio" name="workdone_rd" checked  value="description"/>&nbsp;&nbsp;
+      PHOTOS:<input class="radio" type="radio" name="workdone_rd" value='photos'/>
+      </td>
+  </tr>
+  <tr style="font-size:14px;">
+    <td colspan='2' style="background-color:white;">
+      <center>
+        <textarea cols="43" rows="8" id="workdone_description" name='description'
+          style="display:block" placeholder="Describe work done"></textarea>
+        <div id="workdone_photos" style="display:none;">
+          <img src="{{url_for('static',filename = 'images/{{username}}/backyard.jpg')}}" class='workphoto' />
+          <img src="{{url_for('static',filename = 'images/{{username}}/backyard.jpg')}}" class='workphoto'/>
+        </div>
+      </center>
+    </td>
+  </tr>
+  <tr>
+    <td colspan='2' class='control'>
+      <!-- onclick="submitworkperformed()" -->
+      <input type="submit" value="SUBMIT FORM" style="width:49%;"  class="small red button" />
+      <input type="button" value="EXIT" style="width:49%;" onclick="closeform()" class="small red button" />
+    </td>
+  </tr>
+  </tbody>
+</table>
+
+</form>
+
+
+<center>
+  <div class="main_div">
+    <div class="sub_div">
+      &copy; 2022 MYDEFENSIBLESPACE.ORG
+    </div>
+  </div>
+</center>
+</div>
+</center>
+<script>
+
+  var bounds = null;  // Usefull for caching parcels in view. Use threading
+  let cities = {{cities|safe}};
+
+  $("input[name='workdone_rd']").change(function(){
+    let val = $(this).val();
+    if(val == "photos"){
+      $('#workdone_photos').css('display','block');
+      $('#workdone_description').css('display','none');
+    }else{
+      $('#workdone_description').css('display','block');
+      $('#workdone_photos').css('display','none');
+    }
+  })
+
+
+
+  function cityselection(ele){
+    var city = $(ele).val();
+    for(var c of cities){
+      if(city == c[2]){
+        let xcoord = c[0];
+        let ycoord = c[1];
+        map.flyTo([ycoord, xcoord], 13);
+        break;
+      }
+    }
+  }
+
+  var map = L.map( 'workdone_map', {
+      center: [20.0, 5.0],
+      minZoom: 2,
+      zoom: 2
+  });
+
+  map.on('click', function(e) {
+    console.log("map click" + e);
+    let lat = e.latlng['lat'];
+    let lng = e.latlng['lng'];
+    getReverseGeoCode(lat,lng)
+
+  });
+
+  map.on('moveend', function() {
+     // bounds = map.getBounds();
+     // Call PostGIS to cache parcels;  use username for table name
+  });
+
+  map.on('zoomend', function() {
+     // bounds = map.getBounds();
+     // Call PostGIS to cache parcels .  use username for table name
+  });
+
+  // L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{
+  //     maxZoom: 20,
+  //     subdomains:['mt0','mt1','mt2','mt3']
+  // }).addTo( map );
+
+  L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{
+      maxZoom: 20,
+      subdomains:['mt0','mt1','mt2','mt3']
+  }).addTo( map );
+
+  gotoCounty();
+  console.log("calling workhistory");
+
+</script>
+<script>
+    console.log("set up radio detect")
+    $('input[type=radio][name=str_dir]').change(function() {
+        console.log("call displystreet")
+        displaystreet();
+    });
+
+    $('#countyselect').val('{{county}}');
+    onchangeCounty($('#countyselect'));
+
+</script>
+<script>
+
+  var weekdays = ['SUN','MON','TUE','WED','THUR','FRI','SAT'];
+  console.log("Vue instantiated");
+  var dayofweek = new Date().getDay();
+  var week =['TODAY'];
+  for(var i = 1; i<8; i++){
+    day = (dayofweek + i) % 7;
+    console.log(weekdays[day]);
+    week.push(weekdays[day]);
+  }
+
+  model_data = {"forecast":{{forecast|safe}},"members":[]};
+  var i = 0;
+  for(d of model_data['forecast']){
+    d['weekday'] = week[i];
+    i++;
+  };
+
+  var app = new Vue({
+    delimiters: ['[|', '|]'],
+    el: '#app',
+    data: model_data
+  })
+
+  wkapp_model = {"work":[]};
+
+  var wkapp = new Vue({
+    delimiters: ['[|', '|]'],
+    el: '#workhistory',
+    data: wkapp_model,
+    methods: {
+        showphotos: function(photobefore,photoafter){
+          console.log("showphoto "+photobefore+" "+photoafter);
+        }
+    }
+  })
+
+</script>
+
+</body>
+</html>
