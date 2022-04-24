@@ -58,7 +58,7 @@ load jquery and mapping and leaflet.js scripts
 
   var countyBoundary = {{ctyboundary|safe}};
 
-  var dopanandzoom = true;
+  var dopanandzoom = false;
 
 
 
@@ -133,13 +133,14 @@ load jquery and mapping and leaflet.js scripts
   var intervalID = setInterval(rotateTwitter, 20000);
 
   function updateColors(){
+    console.log("updateColors");
     map.eachLayer((layer) => {
       if(!('_url' in layer)){
         layer.remove();
       }
     });
     dopanandzoom = false;
-    debugger;
+
     renderdefensiblespace(geo100);
     renderCity(cityparcels);
     renderstructures(geoStructures);
@@ -157,13 +158,12 @@ load jquery and mapping and leaflet.js scripts
   }
 
   function renderZone(geodata){
-
     var geojson = L.geoJson(geodata,{
       style:function(feature){
         switch (feature.properties.status) {
-          case 'none': return {color: "red", weight:2, opacity:1.0, "fillOpacity":0.0};
-          case 'inprogress': return {color: "yellow", weight:2, opacity:1.0, fillOpacity:0.0};
-          case 'completed': return {color: "lightgreen", weight:2, opacity:1.0, fillOpacity:0.0};
+          case 'none': return {"color": "red", "weight":2, "opacity":1.0, "fillOpacity":0.0};
+          case 'inprogress': return {"color": "yellow", "weight":2, "opacity":1.0, "fillOpacity":0.0};
+          case 'completed': return {"color": "lightgreen", "weight":2, "opacity":1.0, "fillOpacity":0.0};
         }
       }
     })
@@ -172,7 +172,10 @@ load jquery and mapping and leaflet.js scripts
 
   }
 
+
+
   function reloadMySpace(){
+    console.log("reloadMySpace");
     map.eachLayer((layer) => {
       if(!('_url' in layer)){
         layer.remove();
@@ -258,7 +261,7 @@ load jquery and mapping and leaflet.js scripts
       contentType: "application/json; charset=utf-8",
       dataType: "json",
       success:function(data){
-
+        
         map.eachLayer((layer) => {  // Clears map first
           if(!('_url' in layer)){
             layer.remove();
@@ -361,13 +364,13 @@ load jquery and mapping and leaflet.js scripts
       dataType: "json",
       success: function(data){
         var dutStyle = {
-          "color": 'darkblue',
+          "color": 'skyblue',
           "weight":1,
           "opacity":1.0,
           "fillColor": "red",
           "fillOpacity": 0.0
         };
-        debugger;
+
         console.log(data['parcels']);
         geodata = JSON.parse(data['parcels']);
 
@@ -398,6 +401,8 @@ load jquery and mapping and leaflet.js scripts
         $("#rightpanel").html(htmlitems);  // INSERT COMMINITY LIST
         $("#maillistdiv").css('visibility','visible');  // TODO: TEST
 
+
+
         console.log("calling renderZone for zone5");
         renderZone(JSON.parse(data['zone5']));
         console.log("calling renderZone for zone30");
@@ -405,6 +410,8 @@ load jquery and mapping and leaflet.js scripts
         console.log("calling renderZone for zone100");
         renderZone(JSON.parse(data['zone100']));
         console.log("done rendering zones");
+
+
       }
     })
   }
@@ -412,6 +419,8 @@ load jquery and mapping and leaflet.js scripts
   var zone5 = "{{zone5}}";
   var zone30 = "{{zone30}}";
   var zone100 = "{{zone100}}";
+
+  var nIntervId = 0;
 
   $(document).ready(function(){
     console.log("jquery");
@@ -427,6 +436,7 @@ load jquery and mapping and leaflet.js scripts
         showdefensiblespace();
         showZone30();
         showZone5();
+        nIntervId = setInterval(zoomhome, 3000);
         //showfirehistory();
 
     {% endif %}
@@ -473,7 +483,7 @@ load jquery and mapping and leaflet.js scripts
 
   function renderCity(geodata){
       var dutStyle = {
-        "color": 'darkblue',
+        "color": 'skyblue',
         "weight":1,
         "opacity":1.0,
         "fillColor": "red",
@@ -973,7 +983,7 @@ load jquery and mapping and leaflet.js scripts
               color5 = colormap[geodata['features'][0]['properties']['status']];
             }
 
-            renderZone(geodata)
+            renderZone(geodata);
             //renderZone5(geodata);
             // if(geojsonCommunity != null){
             //   geojsonCommunity.addTo(map);
@@ -989,9 +999,29 @@ load jquery and mapping and leaflet.js scripts
     )
   }
 
+  var layers = []
+
+  function hidelayers(){
+    map.eachLayer((layer => {
+      if(!('_url' in layer)){
+        layers.push(layer);
+        layer.remove();
+      }
+    }))
+  }
+
   function zoomhome(){
+    clearInterval(nIntervId)
+    hidelayers();
+    map.on('zoomend', function () {
+        for(var layer of layers){
+          layer.addTo(map);
+        }
+        layers = [];
+    });
     map.flyTo([{{ycoord}}, {{xcoord}}], 19);
   }
+
 
   function createAvatarJsonPoint(name,point,avatar){
     var avatarIcon = L.icon({
@@ -1520,7 +1550,6 @@ load jquery and mapping and leaflet.js scripts
               {% include "components/memberform.html" %}
             {% else %}
               {% include "components/nonmemberform.html" %}
-
             {% endif %}
             </div>
             <div id="maillistdiv" style="visibility:hidden;height:1px;">  <!-- TEST -->
@@ -1531,7 +1560,6 @@ load jquery and mapping and leaflet.js scripts
             <style>
 
                 table .logtable {
-
 
                   width: 100%;
                 }
@@ -1555,7 +1583,6 @@ load jquery and mapping and leaflet.js scripts
                 /* .itemconfiguration
                 {
                 		height:700px;
-
                 		/* background-color:#CCC;
                     overflow-y:auto;
                 		float:left;
@@ -1572,21 +1599,22 @@ load jquery and mapping and leaflet.js scripts
                 }
 
             </style>
-            <form id="logtable_frm" method="POST" action="/memberlog_photo/{{county}}/{{username}}" enctype="multipart/form-data" style="background-color:white;" >
-              <input type='hidden' name='address' value='{{address}}'/>
-              <input type='hidden' name='city' value="{{city}}"/>
-              <div id="logtable"  style="width:100%;display:none;background-color:white;padding:4px;height:100%;">
-                <input type='hidden' name='date' value='[|memberlog["activedate"]|]' />
+
+            <div id="logtable"  style="width:100%;display:none;background-color:white;padding:4px;height:100%;">
+              <form id="logtable_frm" method="POST" action="/memberlog_photo/{{county}}/{{username}}" enctype="multipart/form-data" style="background-color:white;" >
+                <input type='hidden' name='address' value='{{address}}'/>
+                <input type='hidden' name='city' value="{{city}}"/>
+                <input type='hidden' name='date' v-model='activedate' />
                 <center>
                 <table style="width:100%;color:black;font-size:12px;" class='logtable'>
                 <tbody>
                   <tr style="background-color:white;height:12px;font-size:12px;"><td>BEFORE</td><td>AFTER</td>
                   </tr>
                   <tr>
-                    <td><img id="photobefore_img" src="{{url_for('static',filename = 'images/{{username}}/thumb_1_2.jpg')}}" style="width:100%; height:200px;background-color:gray;" /></td>
-                    <td><img id="photoafter_img" src="{{url_for('static',filename = 'images/{{username}}/thumb_1_2.jpg')}}" style="width:100%; height:200px;background-color:gray;"/></td>
+                    <td><img id="photobefore_img" src="{{url_for('static',filename = 'images/mdsdemo/thumb_1_2.jpg')}}" style="width:100%; height:200px;background-color:gray;" /></td>
+                    <td><img id="photoafter_img" src="{{url_for('static',filename = 'images/mdsdemo/thumb_2_2.jpg')}}" style="width:100%; height:200px;background-color:gray;"/></td>
                   </tr>
-                    <tr style="background-color:white;">
+                    <!-- <tr style="background-color:white;">
                       <td>
                         <label for="photouploaded" class="custom-file-upload">
                         PHOTO;
@@ -1601,8 +1629,12 @@ load jquery and mapping and leaflet.js scripts
                       </label>
                     </td>
 
-                  </tr>
+                  </tr> -->
+
                   <tr><td colspan='2' style="textalign:left;vertical-align:top;">
+                    <center>
+                    <input type="button" value="UPLOAD PHOTOS AND EDIT PHOTO SELECTION" class="small red button" onclick="showlogsalt()" /></center><br>
+
                     <textarea id='expenditures_detail' cols='85' placeholder="EXPENDITURES"></textarea><br>
                     <textarea id='comments_detail' cols='85' placeholder="COMMENTS"></textarea>
                   </td></tr>
@@ -1626,9 +1658,9 @@ load jquery and mapping and leaflet.js scripts
                     <tr>
                   </tbody>
                 </table>
-                <input type="submit" class="small red button" />
-              </div>
+
             </form>
+            </div>
             </center>
             <div id="map" style="height: 670px; border: 2px solid #000000; width: 100%;">
           </div>
@@ -1640,17 +1672,18 @@ load jquery and mapping and leaflet.js scripts
           <div id="app"> <!-- START OF VUE APP -->
 
             <div class='links_div'>
-            {% if county != "placer" %}
-            <span>SITE LINKS</span><br>
-            {% endif %}
+
             <a href='changeprofile/{{role}}/{{community}}/{{username}}'>Edit My Profile</a><br>
             <a href='html/marketplace'>Marketplace</a><br>
             <a href='forum'>Discussion Forum<br>
-            <a href='html/company_store'>Company Store</a><br>
+            <!-- <a href='html/company_store'>Company Store</a><br> -->
             <a href='html/about'>About Us</a><br>
             <a href='html/contactus'>Contact Us</a><br>
-            <a href='html/legal'>Legal Mumbo Jumbo</a><br>
-
+            <a href='html/legal'>Legal Matters</a><br>
+            {% if county == "marin" %}
+            <a href='https://www.mostlynatives.com/plant-characteristics/drought-tolerant?page=1'>Drought Resistant Native Plants</a><br>
+            <a href='https://www.marinwildfire.org/'>Marin Wildfire Prevention Auth.</a><br>
+            {% endif %}
             {% if county == "placer" %}
               <a href="https://www.placerair.org/1671/Burn-Days">Burn Day Status</a><br>
             {% endif %}
@@ -1724,9 +1757,9 @@ load jquery and mapping and leaflet.js scripts
                   {% endif %}
                 </div>
                 <div id="memberlistdisplay" style="display:none">
-                  <span style="color:white">Show community member log</span><br>
-                  <select  style="width:100%;" size='18'>
-                    <option v-for="(item, index) in members" value='[|item["username"]]' >[|item['name']|]</option>
+                  <span style="color:white">MEMBER LOGS SHARED</span><br>
+                  <select  style="width:100%;" size='18' >
+                    <option v-for="(item, index) in members" value='[|item["username"]]' v-on:click="memberselect(item)">[|item['name']|]</option>
                   </select>
                 </div>
               </center>
@@ -1758,6 +1791,8 @@ load jquery and mapping and leaflet.js scripts
         subdomains:['mt0','mt1','mt2','mt3']
     }).addTo( map );
 
+
+
     //L.tileLayer('http://{s}.tile.openstreetmap.org/{x}/{y}/{z}.png').addTo(map)
 
   </script>
@@ -1771,11 +1806,12 @@ load jquery and mapping and leaflet.js scripts
 
   <script>
 
-    
     var weekdays = ['SUN','MON','TUE','WED','THUR','FRI','SAT'];
     console.log("Vue instantiated");
+
     var dayofweek = new Date().getDay();
     var week =['TODAY'];
+
     for(var i = 1; i<8; i++){
       day = (dayofweek + i) % 7;
       console.log(weekdays[day]);
@@ -1784,7 +1820,6 @@ load jquery and mapping and leaflet.js scripts
 
     model_data = {"forecast":{{forecast|safe}},"members":[{'name':'john','username':''},{'name':'joe','username':''}]};
 
-    debugger;
     var i = 0;
     for(d of model_data['forecast']){
       d['weekday'] = week[i];
@@ -1794,12 +1829,40 @@ load jquery and mapping and leaflet.js scripts
     var app = new Vue({
       delimiters: ['[|', '|]'],
       el: '#app',
-      data: model_data
+      data: model_data,
+      methods:{
+        memberselect(item){
+          console.log("memberselect:"+item['name']);
+          $.ajax({
+            url:"getmycommember/{{county}}",
+            method: "POST",
+            data:JSON.stringify({'user':item['username']}),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success:function(data){
+              log_model['memberlog'] = data['memberlog'];
+              var i = 0;
+              $('#expenditures_detail').val(log_model['memberlog'][i][3]);
+              $('#comments_detail').val(log_model['memberlog'][i][4]);
+              log_model['activedate'] = log_model['memberlog'][i][6].toString();
+              console.log(imagespath + "/" + log_model['memberlog'][i][8]);
+              $('#photobefore_img').attr('src', imagespath + "/" + log_model['memberlog'][i][8]);
+              $('#photoafter_img').attr('src', imagespath + "/" + log_model['memberlog'][i][9]);
+            },
+            error:function(error){
+              console.log("ERROR getting memberlog");
+
+            }
+          })
+        }
+      }
     })
 
     log_model = {'memberlog':[],'activedate':""};
 
-    var imagespath = "{{url_for('static',filename = 'images')}}" + '/{{username}}';
+    //var imagespath = "{{url_for('static',filename = 'images')}}" + '/{{username}}';
+    var imagespath = "{{url_for('static',filename = 'images')}}" + '/mdsdemo';
+    //var imagespath = "./public/images/" + "{{username}}";
 
     var applog = new Vue({
       delimiters: ['[|','|]'],
@@ -1809,7 +1872,8 @@ load jquery and mapping and leaflet.js scripts
         fillDetail(i){
           $('#expenditures_detail').val(log_model['memberlog'][i][3]);
           $('#comments_detail').val(log_model['memberlog'][i][4]);
-          log_model['activedate'] = log_model['memberlog'][i][6];
+          log_model['activedate'] = log_model['memberlog'][i][6].toString();
+          console.log(imagespath + "/" + log_model['memberlog'][i][8]);
           $('#photobefore_img').attr('src', imagespath + "/" + log_model['memberlog'][i][8]);
           $('#photoafter_img').attr('src', imagespath + "/" + log_model['memberlog'][i][9]);
         },
@@ -1824,6 +1888,7 @@ load jquery and mapping and leaflet.js scripts
           let photobefore = $('#photouploaded').val();
           console.log("photoBeforeChange " + photobefore);
         },
+
         photoAfterChange(ele){
           // Must be uploaded to images folder before it can be viewed
           let photoafter = $('#photouploaded2').val();
@@ -1831,6 +1896,8 @@ load jquery and mapping and leaflet.js scripts
         }
       }
     })
+
+
 
   </script>
   <script type="text/javascript">
