@@ -28,7 +28,6 @@ from DBHelper import DBHelper
 UPLOAD_FOLDER = './templates/public/images'
 #UPLOAD_FOLDER = '/var/www/mydefensiblespace.org/html/templates/public/images'
 
-
 dbhelper = DBHelper()
 app = Flask(__name__, static_url_path='/public')
 
@@ -267,16 +266,17 @@ def logviewmobile(user):
 @main_blueprint.route('/mapview/<string:user>', methods=['GET','POST'])
 def mapview(user):
     res = dbhelper.dbFetchOne("select address, city, community, county from users where upper(username) = '{}'".format(user.upper()))
-    #pdb.set_trace()
     address = res[0]
     city = res[1]
     community = res[2]
     county = res[3]
     return render_template("mapmobile.html", county=county, city=city, address=address, community=community, username=user,fontsize=MOBILE_FONT)
 
+
 @main_blueprint.route('/loginrest', methods=['GET', 'POST'])
 def loginrest():
     return jsonify({"success":"true"})
+
 
 @main_blueprint.route('/login', methods=['GET', 'POST'])
 def login():
@@ -289,8 +289,7 @@ def login():
             username = request.form.get('username')
             password = request.form.get('password')
             print("loging in ",username)
-            sql = "SELECT address, city, state, community, role, county, name, avatar FROM users WHERE username = '{}' and password = '{}'"\
-                                          .format(username, password)
+            sql = "SELECT address, city, state, community, role, county, name, avatar FROM users WHERE username = '{}' and password = '{}'".format(username, password)
             print(sql)
             results = dbhelper.dbFetchOne(sql)
         except Exception as e:
@@ -360,7 +359,7 @@ def login():
             sql = """SELECT ST_AsGeoJSON(geom) as geometry
                 FROM counties WHERE statefp = '{}' and LOWER(name) = '{}'""".format('06', county.lower())
             ctyboundary = dbhelper.getData(sql)
-            
+
 
             return render_template("home.html",temp=int(currentemp), humidity=currenthumidity,currentweather=currentweather, forecast=forecast, ctyboundary=ctyboundary,
                                 address=address, city=city, state=results[2], username=username.upper(),xcoord=xcoord, ycoord=ycoord, \
@@ -558,9 +557,13 @@ def getmymembers(user):
 def memberlog_photo(county,user):
     before = ""
     after = ""
-    address = request.form.get('address')
-    city = request.form.get('city')
-    date = request.form.get('date')
+    res = dbhelper.dbFetchOne("select address, city from users where lower(username) = '{}'".format(user.lower()))
+    #pdb.set_trace()
+    address = res[0]
+    city = res[1]
+    #address = request.form.get('address')
+    #city = request.form.get('city')
+    datestr = request.form.get('date')
     try:
         if len(request.files) > 0:
             if not os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'],user)):
@@ -576,22 +579,56 @@ def memberlog_photo(county,user):
                         filename = secure_filename(file.filename)
                         file.save(os.path.join(app.config['UPLOAD_FOLDER'], user, filename))
             sql = """UPDATE memberlog SET photobefore = '{}', photoafter = '{}'
-                WHERE address = '{}' and city = '{}' and date = '{}'""".format(before, after, address, city, date)
+                WHERE lower(address) = '{}' and lower(city) = '{}' and date = '{}'""".format(before, after, address.lower(), city.lower(), datestr)
+            print("sql update photo:",sql)
+            dbhelper.dbExecute(sql)
     except Exception as e:
         print("File Save Failed",str(e))
-    return render_template("home.html")
+    return redirect("/memberlogsalt/"+user)
+    #return render_template("home.html")
+
+
+@main_blueprint.route('/memberlogsalt/<string:username>', methods=['GET','POST'])
+def memberlogalt(username):
+    res = dbhelper.dbFetchOne("SELECT address, city, county from users where lower(username) = '{}'".format(username.lower()))
+    address = res[0]
+    city = res[1]
+    county = res[2]
+    sql = "SELECT zone5, zone30, zone100, expenditures, comments,landscapeservice, date, satisfaction, photobefore, photoafter FROM memberlog WHERE city = '{}' and address = '{}' ORDER BY date DESC".format(city, address)
+    memberlogdata = dbhelper.dbFetchAll(sql)
+    memberlogdata = [[f[0][0],f[1][0],f[2][0],f[3],f[4],f[5],str(f[6])[0:10],f[7],f[8],f[9]] for f in memberlogdata]
+    print("memberlog length ",len(memberlogdata))
+    members, community = getmymembers(username)
+    members2 = [{"username":m[0],"name":m[1]} for m in members]
+    print(memberlogdata)
+    #pdb.set_trace()
+    return render_template("memberlogpage.html", memberlog=memberlogdata,  community=community, mymembers=members2, username=username, county=county)
+
+
+@main_blueprint.route('/getmycommember/<string:county>',methods=['POST','GET'])
+def getcommemberlog(county):
+    print("getcommemberlog")
+    data = request.get_json()
+    username = data['user']
+    res = dbhelper.dbFetchOne("select address, city from users where username = '{}'".format(username))
+    sql = """SELECT zone5, zone30, zone100, expenditures, comments,landscapeservice, date,
+    satisfaction, photobefore, photoafter FROM memberlog WHERE city = '{}' and address = '{}'""".format(res[1], res[0])
+    memberlog = dbhelper.dbFetchAll(sql)
+    memberlog = [[f[0][0],f[1][0],f[2][0],f[3],f[4],f[5],str(f[6])[0:10],f[7],f[8],f[9]] for f in memberlog]
+    return jsonify({'memberlog':memberlog})
 
 
 @main_blueprint.route('/memberlog/<string:county>', methods=['GET','POST'])
 def memberlog(county):
-    #pdb.set_trace()
     data = request.get_json()
     city = data['city']
     address = data['address']
     user = data['username']
+    #pdb.set_trace()
     sql = "SELECT zone5, zone30, zone100, expenditures, comments,landscapeservice, date, satisfaction, photobefore, photoafter FROM memberlog WHERE city = '{}' and address = '{}'".format(city, address)
     memberlog = dbhelper.dbFetchAll(sql)
     memberlog = [[f[0][0],f[1][0],f[2][0],f[3],f[4],f[5],str(f[6])[0:10],f[7],f[8],f[9]] for f in memberlog]
+    print("memberlog length ",len(memberlog))
     members,community = getmymembers(user)
     members2 = [{"username":m[0],"name":m[1]} for m in members]
     return jsonify({'memberlog':memberlog,  'community':community, 'mymembers':members2})
@@ -1134,7 +1171,7 @@ def myspaceupdate(county, city):
     sq10 = "UPDATE {}_zone5 SET status='{}' WHERE UPPER(SIT_CITY) = '{}' and UPPER(SIT_FULL_S) = '{}'".format(county, z0, city.upper(), address.upper())
     sq11 = "UPDATE {}_zone30 SET status='{}' WHERE UPPER(SIT_CITY) = '{}' and UPPER(SIT_FULL_S) = '{}'".format(county, z1, city.upper(), address.upper())
     sq12 = "UPDATE {}_zone100 SET status='{}' WHERE UPPER(SIT_CITY) = '{}' and UPPER(SIT_FULL_S) = '{}'".format(county, z2, city.upper(), address.upper())
-    sql3 = "INSERT INTO memberlog (address, city, zone5, zone30, zone100,landscapeservice,expenditures,comments, date, satisfaction) VALUES ('{}','{}','{}','{}','{}','{}','{}','{}','{}','{}')".format(address,city,z0,z1,z2,landscapeservices,expenditures,comments, datestr, satisfaction)
+    sql3 = "INSERT INTO memberlog (address, city, zone5, zone30, zone100,landscapeservice,expenditures,comments, date, satisfaction, photobefore, photoafter) VALUES ('{}','{}','{}','{}','{}','{}','{}','{}','{}','{}','','')".format(address,city,z0,z1,z2,landscapeservices,expenditures,comments, datestr, satisfaction)
     #sql3 = "INSERT INTO memberlog (address, city, zone5, zone30, zone100,landscapeservice,expenditures,comments, date, satisfaction) VALUES ('{}','{}','{}','{}','{}','{}','{}','{}','{}','{}')".format(address,city,z0,z1,z2,landscapeservices,expenditures,comments, datestr, satisfaction)
 
     dbhelper.dbTransaction([sq10, sq11, sq12, sql3])
