@@ -1,0 +1,127 @@
+<html>
+<head>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+<script type='text/javascript' src='//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js'></script>
+<style>
+  #texttable {
+    overflow: auto;
+    height: 200px;
+  }
+  #logtable {
+	border: 2px solid black;
+  }
+</style>
+</head>
+<body style="background-color:#805050;font-family:sans-serif; margin:20px;" >
+<div id="logtable"  style="width:100%;background-color:#9F6666;padding:4px;">
+  <form id="logtable_frm" method="POST" action="/memberlog_photo/{{county}}/{{username}}" enctype="multipart/form-data" style="background-color:#9F6666;height:100%;" >
+    <input type='hidden' name='address' value='{{address}}'/>
+    <input type='hidden' name='city' value="{{city}}"/>
+    <input type='hidden' name='date' v-model='activedate' />
+    <center>
+    <h2 style="color:white;">MY DEFENSIBLE SPACE</h2>
+    <table style="width:75%;color:black;background-color:white,font-size:12px;" class='logtable'>
+    <tbody>
+      <tr style="background-color:white;height:12px;font-size:12px;"><td>BEFORE</td><td>AFTER</td>
+      </tr>
+      <tr>
+        <td><center><img id="photobefore_img"  src="{{url_for('static',filename = 'images/{{username}}/thumb_1_2.jpg')}}" style="width:100%; height:250px;background-color:gray;" /></center></td>
+        <td><center><img id="photoafter_img"   src="{{url_for('static',filename = 'images/{{username}}/thumb_1_2.jpg')}}" style="width:100%; height:250px;background-color:gray;"/></center></td>
+      </tr>
+        <tr style="background-color:white;">
+          <td>
+            <label for="photouploaded" class="custom-file-upload">
+            PHOTO;
+          <input id='photouploaded' type="file" name="photobefore" v-on:change="photoBeforeChange(this)" />
+
+          </label>
+        </td>
+        <td>
+          <label for="photouploaded2" class="custom-file-upload">
+            PHOTO;
+          <input id='photouploaded2' type="file" name="photoafter" v-on:change="photoAfterChange(this)"/>
+          </label>
+        </td>
+
+      </tr>
+      <tr><td colspan='2' style="textalign:left;vertical-align:top;">
+        <textarea id='expenditures_detail' style="width:100%;" placeholder="EXPENDITURES"></textarea><br>
+        <textarea id='comments_detail' style="width:100%;" placeholder="COMMENTS"></textarea>
+      </td></tr>
+    </tbody></table>
+    <div id="texttable">
+    <table style="width:99%;background-color:white;color:black; border:2px solid #505050;font-size:14px;width:75%;" >
+      <thead><tr style="font-size:12px;height:12px;"><th>Z1</th><th>Z2</th><th>Z3</th><th>LANDSCAPE SERVICE</th><th>DATE</th><th>SATISFACTION</th><th>DETAIL</th></thead>
+      <tbody>
+        <tr><td colspan="6">TODAY</td>
+          <td>
+            <input type="radio" name="memberlog_radio" v-on:click="clearDetail()">
+          </td>
+        </tr>
+        <tr v-for='(row, i) in memberlog' style="height:12px;textalign:left;border:1px solid #000000;">
+          <td>[|row[0]|]</td>
+          <td>[|row[1]|]</td>
+          <td>[|row[2]|]</td>
+          <td>[|row[5]|]</td>
+          <td>[|row[6]|]</td>
+          <td>[|row[7]|] star</td>
+          <td><input type="radio" name="memberlog_radio" v-on:click="fillDetail(i)"></td>
+        <tr>
+      </tbody>
+    </table>
+  </div>
+    <input type="submit" class="small red button" />
+    <input type="button" value="DONE" class="small red button" onclick="donephotoedit()"/>
+
+</form>
+<script>
+
+  function donephotoedit(){
+    window.history.back();
+  }
+
+  var log_model = {'memberlog':{{memberlog|safe}},'activedate':""};
+  var imagespath = "{{url_for('static',filename = 'images')}}" + '/{{username}}';
+  //var imagespath = "./public/images/" + "{{username}}";
+
+  $('#photobefore_img').attr('src', imagespath + "/" + log_model['memberlog'][0][8]);
+  $('#photoafter_img').attr('src', imagespath + "/" + log_model['memberlog'][0][9]);
+
+  var applog = new Vue({
+    delimiters: ['[|','|]'],
+    el: '#logtable',
+    data: log_model,
+    methods: {
+
+      fillDetail(i){
+        $('#expenditures_detail').val(log_model['memberlog'][i][3]);
+        $('#comments_detail').val(log_model['memberlog'][i][4]);
+        log_model['activedate'] = log_model['memberlog'][i][6].toString();
+        console.log(imagespath + "/" + log_model['memberlog'][i][8]);
+        $('#photobefore_img').attr('src', imagespath + "/" + log_model['memberlog'][i][8]);
+        $('#photoafter_img').attr('src', imagespath + "/" + log_model['memberlog'][i][9]);
+      },
+
+      clearDetail(){
+        $('#expenditures_detail').val("");
+        $('#comments_detail').val("");
+      },
+
+      photoBeforeChange(ele){
+        // Must be uploaded to images folder before it can be viewed
+        let photobefore = $('#photouploaded').val();
+        console.log("photoBeforeChange " + photobefore);
+      },
+
+      photoAfterChange(ele){
+        // Must be uploaded to images folder before it can be viewed
+        let photoafter = $('#photouploaded2').val();
+        console.log("photoAfterChange "  + photoafter);
+      }
+
+    }
+  })
+</script>
+</div>
+</body>
+</html>

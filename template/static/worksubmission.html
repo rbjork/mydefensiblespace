@@ -663,7 +663,7 @@
             //     $('#firewiselist').append($('<option></option>').val(p).html(p));
             // });
             var dutStyle = {
-              "color": 'darkblue',
+              "color": 'skyblue',
               "weight":2,
               "opacity":1.0,
               "fillColor": "red",
@@ -812,7 +812,7 @@
       dataType: "json",
       success:function(data){
         var dutStyle = {
-          "color": 'darkblue',
+          "color": 'skyblue',
           "weight":2,
           "opacity":1.0,
           "fillColor": "red",
@@ -871,7 +871,7 @@
         renderZone(JSON.parse(data['zone100']));
 
         var dutStyle = {
-          "color": 'darkblue',
+          "color": 'skyblue',
           "weight":2,
           "opacity":1.0,
           "fillColor": "red",
@@ -898,7 +898,7 @@
         console.log("threat p value "+p);
         if(p == "haz_code"){
           haz_code = feature.properties[p];
-          var color = "blue";
+          var color = "skyblue";
           if(haz_code == 1){
             color = "yellow";
           }else if(haz_code == 2){

@@ -170,7 +170,7 @@ load jquery and mapping and leaflet.js scripts
 
   function renderCity(geodata){
       var dutStyle = {
-        "color": 'darkblue',
+        "color": 'skyblue',
         "weight":1,
         "opacity":1.0,
         "fillColor": "red",
@@ -486,7 +486,7 @@ load jquery and mapping and leaflet.js scripts
                 $('#firewiselist').append($('<option></option>').val(p).html(p));
             });
             var dutStyle = {
-              "color": 'darkblue',
+              "color": 'skyblue',
               "weight":2,
               "opacity":1.0,
               "fillColor": "red",
@@ -519,7 +519,7 @@ load jquery and mapping and leaflet.js scripts
          dataType: "json",
          success:function(data){
            var dutStyle = {
-             "color": 'darkblue',
+             "color": 'skyblue',
              "weight":1,
              "opacity":1.0,
              "fillColor": "red",
@@ -546,7 +546,6 @@ load jquery and mapping and leaflet.js scripts
   }
 
   function getcityfirewalls(){
-    debugger;
     var city = $('#city').val();
     $.ajax({
       url:"/special/firewall/marin/" + city,
@@ -622,7 +621,7 @@ load jquery and mapping and leaflet.js scripts
               </select><p>
 
               MDS. Communities:<br>
-              <select style="width:200px;" id="firewiselist" onchange="selectFirewise(this)" multiple>
+              <select style="width:200px;" id="firewiselist" onchange="selectFirewise(this)" >
               </select><br>
               <input type="button" value="LOAD COMS" onclick="loadmultiple()" style="width:200px;"/><br>
               <input type="button" value="ZOOM 1 DETAIL" onclick="zoomdetail()" style="width:200px;"/><br>
